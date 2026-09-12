@@ -1,0 +1,14 @@
+{
+  "name": "@newsroom/workers",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@newsroom/pipeline": "workspace:*",
+    "@newsroom/render": "workspace:*",
+    "@newsroom/db": "workspace:*"
+  }
+}

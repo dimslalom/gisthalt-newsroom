@@ -1,0 +1,70 @@
+{
+  "describes": "DNS, DNF, no gap, no lap count. Every missing value renders as a dash, never blank or \"undefined\".",
+  "imagePath": "images/normal.png",
+  "claim": {
+    "vertical": "f1",
+    "claimType": "classification",
+    "entities": {
+      "session": "Balapan",
+      "meeting": "Spanyol GP"
+    },
+    "values": {
+      "session": "Balapan",
+      "meeting": "Spanyol GP",
+      "rows": [
+        {
+          "position": 1,
+          "driver": "Lando Norris",
+          "team": "McLaren",
+          "duration": 5398.223,
+          "gap": 0,
+          "laps": 66
+        },
+        {
+          "position": 2,
+          "driver": "Max Verstappen",
+          "team": "Red Bull Racing",
+          "duration": 5401.998,
+          "gap": 3.775,
+          "laps": 66
+        },
+        {
+          "position": null,
+          "driver": "Lewis Hamilton",
+          "team": "Ferrari",
+          "duration": null,
+          "gap": null,
+          "laps": 41,
+          "status": "DNF"
+        },
+        {
+          "position": null,
+          "driver": "Yuki Tsunoda",
+          "team": "Racing Bulls",
+          "duration": null,
+          "gap": null,
+          "laps": null,
+          "status": "DNS"
+        },
+        {
+          "position": 5,
+          "driver": "Unknown Driver",
+          "team": null,
+          "duration": null,
+          "gap": null,
+          "laps": null,
+          "status": null
+        }
+      ]
+    },
+    "supportingQuote": null,
+    "sourceTier": "A",
+    "sourceDomain": "api.openf1.org",
+    "observedAt": "2026-09-12T14:30:00.000Z",
+    "tags": [
+      "structured"
+    ],
+    "headline": "Hasil Balapan",
+    "imageUrl": "images/normal.png"
+  }
+}

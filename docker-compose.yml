@@ -1,0 +1,74 @@
+name: newsroom
+x-runtime: &runtime
+  build: .
+  image: newsroom-mvp:local
+  restart: unless-stopped
+  env_file: .env
+  environment: &env
+    DATABASE_URL: postgres://newsroom:newsroom@postgres:5432/newsroom
+    STORE_BACKEND: postgres
+    RENDERER_URL: http://renderer:8787
+    RENDER_OUT_DIR: /data/renders
+    TZ: Australia/Brisbane
+    FIXTURE_DIR: /app/fixtures
+    PUBLISH_DRY_RUN: 'true'
+  volumes:
+    - ./.data/renders:/data/renders
+    - ./.data/archive:/data/archive
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: newsroom
+      POSTGRES_PASSWORD: newsroom
+      POSTGRES_DB: newsroom
+    ports: ['127.0.0.1:55432:5432']
+    volumes: ['pgdata:/var/lib/postgresql/data']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U newsroom']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  migrate:
+    <<: *runtime
+    restart: 'no'
+    command: ['pnpm', 'db:migrate']
+    depends_on:
+      postgres: { condition: service_healthy }
+  renderer:
+    <<: *runtime
+    command: ['pnpm', 'renderer']
+    ports: ['127.0.0.1:8787:8787']
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:8787/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+  workers:
+    <<: *runtime
+    command: ['pnpm', 'workers']
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      renderer: { condition: service_healthy }
+  dashboard:
+    <<: *runtime
+    command: ['pnpm', '--filter', '@newsroom/dashboard', 'start']
+    ports: ['127.0.0.1:3939:3939']
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      renderer: { condition: service_healthy }
+  bot:
+    <<: *runtime
+    profiles: ['discord']
+    command: ['pnpm', 'bot']
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+  simulator:
+    <<: *runtime
+    profiles: ['demo']
+    command: ['pnpm', 'agent']
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+volumes:
+  pgdata:

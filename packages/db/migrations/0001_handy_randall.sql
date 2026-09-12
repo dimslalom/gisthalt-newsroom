@@ -1,0 +1,1 @@
+ALTER TABLE "claim_evidence" ADD COLUMN "admissible" boolean DEFAULT true NOT NULL;

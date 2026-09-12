@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gisthalt",
+  "compatibility_date": "2026-09-11",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "."
+  },
+  "routes": [
+    { "pattern": "gisthalt.com", "custom_domain": true },
+    { "pattern": "www.gisthalt.com", "custom_domain": true }
+  ]
+}

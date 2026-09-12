@@ -1,0 +1,75 @@
+{
+  "describes": "No image at all, plus a 404 path and a 120px thumbnail. Must fall back to typography, never a grey box.",
+  "imagePath": null,
+  "claim": {
+    "vertical": "f1",
+    "claimType": "classification",
+    "entities": {
+      "session": "Practice 1",
+      "meeting": "Spanyol GP"
+    },
+    "values": {
+      "session": "Practice 1",
+      "meeting": "Spanyol GP",
+      "rows": [
+        {
+          "position": 1,
+          "driver": "Kimi Antonelli",
+          "team": "Mercedes",
+          "duration": 93.662,
+          "gap": 0,
+          "laps": 24
+        },
+        {
+          "position": 2,
+          "driver": "Charles Leclerc",
+          "team": "Ferrari",
+          "duration": 93.775,
+          "gap": 0.113,
+          "laps": 26
+        },
+        {
+          "position": 3,
+          "driver": "Lewis Hamilton",
+          "team": "Ferrari",
+          "duration": 93.811,
+          "gap": 0.149,
+          "laps": 23
+        },
+        {
+          "position": 4,
+          "driver": "Arvid Lindblad",
+          "team": "Racing Bulls",
+          "duration": 93.89,
+          "gap": 0.228,
+          "laps": 15
+        },
+        {
+          "position": 5,
+          "driver": "Lando Norris",
+          "team": "McLaren",
+          "duration": 93.902,
+          "gap": 0.24,
+          "laps": 21
+        },
+        {
+          "position": 6,
+          "driver": "Max Verstappen",
+          "team": "Red Bull Racing",
+          "duration": 93.998,
+          "gap": 0.336,
+          "laps": 22
+        }
+      ]
+    },
+    "supportingQuote": null,
+    "sourceTier": "A",
+    "sourceDomain": "api.openf1.org",
+    "observedAt": "2026-09-12T14:30:00.000Z",
+    "tags": [
+      "structured"
+    ],
+    "headline": "Hasil Latihan Bebas 1",
+    "imageUrl": null
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@newsroom/brand-f1",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./index.ts" },
+  "dependencies": {
+    "@newsroom/core": "workspace:*",
+    "@newsroom/design": "workspace:*"
+  }
+}

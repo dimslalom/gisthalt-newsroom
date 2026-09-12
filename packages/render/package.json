@@ -1,0 +1,18 @@
+{
+  "name": "@newsroom/render",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@newsroom/core": "workspace:*",
+    "@newsroom/design": "workspace:*",
+    "pixelmatch": "^6.0.0",
+    "playwright": "^1.49.1",
+    "pngjs": "^7.0.0",
+    "sharp": "^0.33.5",
+    "@newsroom/brands": "workspace:*"
+  }
+}

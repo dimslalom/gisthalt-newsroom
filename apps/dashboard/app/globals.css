@@ -1,0 +1,65 @@
+:root {
+  --bg: #0b0e11; --panel: #12171c; --panel-2: #181f26; --line: #232d36;
+  --fg: #e9eef1; --muted: #8b99a3; --accent: #00d7b6; --warn: #f0a33a; --bad: #ef4d5a; --good: #3ecf8e;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+a { color: inherit; text-decoration: none; }
+code, .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+nav.top { display: flex; gap: 4px; align-items: center; padding: 10px 18px;
+  border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 10; }
+nav.top .brand { font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: 12px;
+  color: var(--accent); margin-right: 18px; }
+nav.top a { padding: 6px 12px; border-radius: 6px; color: var(--muted); font-size: 13px; }
+nav.top a:hover { background: var(--panel-2); color: var(--fg); }
+nav.top a.active { background: var(--panel-2); color: var(--fg); }
+nav.top .spacer { flex: 1; }
+
+main { padding: 20px; max-width: 1600px; margin: 0 auto; }
+h1 { font-size: 18px; margin: 0 0 4px; letter-spacing: -.01em; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); margin: 24px 0 10px; }
+p.lede { color: var(--muted); margin: 0 0 20px; max-width: 78ch; }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.grid { display: grid; gap: 14px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+label.field { display: grid; gap: 5px; font-size: 11px; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--muted); }
+select, input, textarea, button {
+  background: var(--panel-2); color: var(--fg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 9px; font: inherit; font-size: 13px; }
+button { cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: #04211c; border-color: var(--accent); font-weight: 600; }
+button.danger:hover { border-color: var(--bad); color: var(--bad); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 12px;
+  padding: 5px 9px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; user-select: none; }
+.toggle.on { border-color: var(--accent); color: var(--accent); }
+
+.tag { font-size: 11px; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line);
+  color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.tag.auto { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent); }
+.tag.review { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+.tag.drop { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, transparent); }
+
+table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--muted); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+table.data td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.data tr:last-child td { border-bottom: 0; }
+
+.art-frame { background: #202428; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.art-frame img { display: block; width: 100%; height: auto; }
+.sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 380px; }
+.profile-grid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
+.empty { color: var(--muted); border: 1px dashed var(--line); border-radius: 10px; padding: 28px; text-align: center; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 12px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+.scroll { overflow-x: auto; }

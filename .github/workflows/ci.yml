@@ -1,0 +1,21 @@
+name: newsroom
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.63.0-noble
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm --filter @newsroom/dashboard build
+      - run: pnpm test
+      - run: pnpm golden
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: render-diffs
+          path: .data/goldens

@@ -1,0 +1,27 @@
+{
+  "name": "@newsroom/dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3939",
+    "build": "next build",
+    "start": "next start -p 3939"
+  },
+  "dependencies": {
+    "@newsroom/brands": "workspace:*",
+    "@newsroom/core": "workspace:*",
+    "@newsroom/db": "workspace:*",
+    "@newsroom/design": "workspace:*",
+    "@newsroom/render": "workspace:*",
+    "@newsroom/workers": "workspace:*",
+    "next": "^15.1.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@newsroom/pipeline": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2"
+  }
+}

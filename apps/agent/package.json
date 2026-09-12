@@ -1,0 +1,13 @@
+{
+  "name": "@newsroom/agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@newsroom/core": "workspace:*",
+    "@newsroom/db": "workspace:*",
+    "@newsroom/publish": "workspace:*",
+    "@newsroom/workers": "workspace:*",
+    "@newsroom/pipeline": "workspace:*"
+  }
+}

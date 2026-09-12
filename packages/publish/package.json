@@ -1,0 +1,12 @@
+{
+  "name": "@newsroom/publish",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@newsroom/core": "workspace:*",
+    "@newsroom/db": "workspace:*",
+    "playwright": "^1.49.1"
+  }
+}

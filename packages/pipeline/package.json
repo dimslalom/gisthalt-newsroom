@@ -1,0 +1,21 @@
+{
+  "name": "@newsroom/pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@newsroom/brands": "workspace:*",
+    "@newsroom/core": "workspace:*",
+    "@newsroom/db": "workspace:*",
+    "@newsroom/design": "workspace:*",
+    "@newsroom/llm": "workspace:*",
+    "@newsroom/publish": "workspace:*",
+    "@newsroom/render": "workspace:*",
+    "@newsroom/sources": "workspace:*",
+    "@newsroom/brand-f1": "workspace:*",
+    "graphile-worker": "^0.16.6"
+  }
+}

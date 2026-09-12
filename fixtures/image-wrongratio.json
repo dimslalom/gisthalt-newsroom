@@ -1,0 +1,26 @@
+{
+  "describes": "Ultra-wide source. Smart crop keeps the subject and the result is still 4:5.",
+  "imagePath": "images/ultrawide.png",
+  "claim": {
+    "vertical": "f1",
+    "claimType": "quote",
+    "entities": {
+      "speaker": "Toto Wolff",
+      "team": "Mercedes",
+      "meeting": "Spanyol GP"
+    },
+    "values": {
+      "speaker": "Toto Wolff",
+      "quote": "Kami tahu mobil ini punya lebih banyak untuk diberikan."
+    },
+    "supportingQuote": null,
+    "sourceTier": "A",
+    "sourceDomain": "api.openf1.org",
+    "observedAt": "2026-09-12T14:30:00.000Z",
+    "tags": [
+      "structured"
+    ],
+    "headline": "Toto Wolff",
+    "imageUrl": "images/ultrawide.png"
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "generatedAt": "2026-09-12T09:00:53.118Z",
+  "runtime": "linux",
+  "fingerprint": "3b0c9d389034aa22463f93a5c845d5ee063e8d79be3a4461bc284b08fb9526a0",
+  "fixtures": [
+    "classification-basic",
+    "colour-clash",
+    "data-extremes",
+    "data-missing",
+    "diacritics",
+    "image-busy",
+    "image-lowcontrast",
+    "image-missing",
+    "image-wrongratio",
+    "title-overflow",
+    "title-underflow"
+  ],
+  "passing": {
+    "session_result": [
+      "hero-left",
+      "full-bleed",
+      "big-number",
+      "portrait"
+    ],
+    "classification": [
+      "stacked",
+      "framed",
+      "split",
+      "hero-right"
+    ],
+    "standings": [
+      "stacked",
+      "framed",
+      "big-number",
+      "split"
+    ],
+    "penalty": [
+      "framed",
+      "big-number",
+      "hero-left",
+      "stacked"
+    ],
+    "driver_line": [
+      "portrait",
+      "hero-left",
+      "hero-right",
+      "framed"
+    ],
+    "schedule": [
+      "stacked",
+      "framed",
+      "split",
+      "big-number"
+    ],
+    "quote": [
+      "portrait",
+      "framed",
+      "hero-left",
+      "full-bleed"
+    ],
+    "match_result": [
+      "hero-left",
+      "hero-right",
+      "framed",
+      "big-number"
+    ],
+    "map_breakdown": [
+      "stacked",
+      "framed",
+      "split",
+      "hero-right"
+    ],
+    "player_stat": [
+      "portrait",
+      "hero-left",
+      "framed",
+      "stacked"
+    ],
+    "roster_move": [
+      "framed",
+      "big-number",
+      "hero-left",
+      "stacked"
+    ],
+    "bracket": [
+      "stacked",
+      "framed",
+      "split",
+      "big-number"
+    ],
+    "vct_schedule": [
+      "stacked",
+      "framed",
+      "split",
+      "big-number"
+    ],
+    "vct_quote": [
+      "portrait",
+      "framed",
+      "hero-left",
+      "full-bleed"
+    ],
+    "release": [
+      "hero-left",
+      "hero-right",
+      "framed",
+      "big-number"
+    ],
+    "cast": [
+      "stacked",
+      "framed",
+      "split",
+      "hero-right"
+    ],
+    "trailer": [
+      "portrait",
+      "hero-left",
+      "framed",
+      "stacked"
+    ],
+    "box_office": [
+      "framed",
+      "big-number",
+      "hero-left",
+      "stacked"
+    ],
+    "film_review": [
+      "stacked",
+      "framed",
+      "split",
+      "big-number"
+    ],
+    "film_schedule": [
+      "stacked",
+      "framed",
+      "split",
+      "big-number"
+    ],
+    "film_quote": [
+      "portrait",
+      "framed",
+      "hero-left",
+      "full-bleed"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "describes": "Four times the expected headline length, plus the longest real constructor legal names.",
+  "imagePath": "images/normal.png",
+  "claim": {
+    "vertical": "f1",
+    "claimType": "driver_line",
+    "entities": {
+      "driver": "Andrea Kimi Antonelli",
+      "team": "Mercedes-AMG PETRONAS Formula One Team"
+    },
+    "values": {
+      "season": "2027",
+      "contractYears": 3
+    },
+    "supportingQuote": null,
+    "sourceTier": "A",
+    "sourceDomain": "api.openf1.org",
+    "observedAt": "2026-09-12T14:30:00.000Z",
+    "tags": [
+      "structured"
+    ],
+    "headline": "Mercedes-AMG PETRONAS Formula One Team mengumumkan perpanjangan kontrak multi-tahun untuk Andrea Kimi Antonelli hingga akhir musim 2029 setelah evaluasi penuh",
+    "imageUrl": "images/normal.png"
+  }
+}

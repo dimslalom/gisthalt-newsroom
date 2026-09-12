@@ -1,0 +1,67 @@
+{
+  "describes": "Hulkenberg, Perez, Nurburgring plus Hangul and Kana, to catch glyphs that silently fall back to another typeface.",
+  "imagePath": "images/normal.png",
+  "claim": {
+    "vertical": "f1",
+    "claimType": "classification",
+    "entities": {
+      "session": "Kualifikasi",
+      "meeting": "Nürburgring GP"
+    },
+    "values": {
+      "session": "Kualifikasi",
+      "meeting": "Nürburgring GP",
+      "rows": [
+        {
+          "position": 1,
+          "driver": "Nico Hülkenberg",
+          "team": "Kick Sauber",
+          "duration": 91.004,
+          "gap": 0,
+          "laps": 12
+        },
+        {
+          "position": 2,
+          "driver": "Sergio Pérez",
+          "team": "Cadillac",
+          "duration": 91.22,
+          "gap": 0.216,
+          "laps": 14
+        },
+        {
+          "position": 3,
+          "driver": "김민재 (T1 Racing)",
+          "team": "Haas",
+          "duration": 91.455,
+          "gap": 0.451,
+          "laps": 13
+        },
+        {
+          "position": 4,
+          "driver": "佐藤 ユウキ",
+          "team": "Racing Bulls",
+          "duration": 91.702,
+          "gap": 0.698,
+          "laps": 11
+        },
+        {
+          "position": 5,
+          "driver": "Nürburgring Test Team",
+          "team": "Williams",
+          "duration": 91.998,
+          "gap": 0.994,
+          "laps": 10
+        }
+      ]
+    },
+    "supportingQuote": null,
+    "sourceTier": "A",
+    "sourceDomain": "api.openf1.org",
+    "observedAt": "2026-09-12T14:30:00.000Z",
+    "tags": [
+      "structured"
+    ],
+    "headline": "Kualifikasi Nürburgring",
+    "imageUrl": "images/normal.png"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "name": "newsroom",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22.9.0"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "fonts": "node scripts/fetch-fonts.mjs",
+    "pipeline": "node --env-file-if-exists=.env --experimental-strip-types apps/workers/src/cli.ts",
+    "dashboard": "pnpm --filter @newsroom/dashboard dev",
+    "golden": "node --env-file-if-exists=.env --experimental-strip-types scripts/render-goldens.ts",
+    "seed": "node --env-file-if-exists=.env --experimental-strip-types apps/workers/src/seed.ts",
+    "db:generate": "drizzle-kit generate --config packages/db/drizzle.config.ts",
+    "renderer": "node --env-file-if-exists=.env --experimental-strip-types packages/render/src/main.ts",
+    "fixtures:images": "node scripts/make-fixture-images.mjs",
+    "agent": "node --env-file-if-exists=.env --experimental-strip-types apps/agent/src/index.ts",
+    "bot": "node --env-file-if-exists=.env --experimental-strip-types apps/bot/src/index.ts",
+    "workers": "node --env-file-if-exists=.env --experimental-strip-types apps/workers/src/main.ts",
+    "db:migrate": "node --env-file-if-exists=.env --experimental-strip-types packages/db/src/migrate.ts",
+    "demo": "node --env-file-if-exists=.env --experimental-strip-types scripts/demo.ts",
+    "check": "pnpm typecheck && pnpm --filter @newsroom/dashboard build && pnpm test",
+    "test:unit": "vitest run --exclude tests/golden.test.ts --exclude tests/postgres.test.ts",
+    "latency": "node --env-file-if-exists=.env --experimental-strip-types scripts/measure-latency.ts",
+    "smoke": "node --env-file-if-exists=.env --experimental-strip-types scripts/smoke.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pixelmatch": "^7.1.0",
+    "@types/pngjs": "^6.0.5",
+    "drizzle-kit": "^0.30.1",
+    "playwright": "^1.49.1",
+    "sharp": "^0.33.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "@newsroom/core": "workspace:*",
+    "@newsroom/db": "workspace:*",
+    "@newsroom/design": "workspace:*",
+    "@newsroom/render": "workspace:*",
+    "@newsroom/publish": "workspace:*",
+    "@newsroom/llm": "workspace:*",
+    "@newsroom/sources": "workspace:*",
+    "@newsroom/brands": "workspace:*",
+    "@newsroom/brand-f1": "workspace:*",
+    "@newsroom/workers": "workspace:*",
+    "@newsroom/pipeline": "workspace:*"
+  }
+}

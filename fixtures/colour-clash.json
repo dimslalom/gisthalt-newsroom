@@ -1,0 +1,30 @@
+{
+  "describes": "A near-white entity colour on the light skin and a near-black one on the dark skin. The pairing must swap the text colour.",
+  "imagePath": "images/normal.png",
+  "claim": {
+    "vertical": "f1",
+    "claimType": "session_result",
+    "entities": {
+      "driver": "Test Driver",
+      "team": "#F8F8F4",
+      "session": "Kualifikasi",
+      "meeting": "Spanyol GP"
+    },
+    "values": {
+      "position": 1,
+      "driver": "Test Driver",
+      "session": "Kualifikasi",
+      "meeting": "Spanyol GP",
+      "duration": 91.004
+    },
+    "supportingQuote": null,
+    "sourceTier": "A",
+    "sourceDomain": "api.openf1.org",
+    "observedAt": "2026-09-12T14:30:00.000Z",
+    "tags": [
+      "structured"
+    ],
+    "headline": "Uji tabrakan warna",
+    "imageUrl": "images/normal.png"
+  }
+}

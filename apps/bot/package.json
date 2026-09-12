@@ -1,0 +1,13 @@
+{
+  "name": "@newsroom/bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@newsroom/core": "workspace:*",
+    "@newsroom/db": "workspace:*",
+    "@newsroom/workers": "workspace:*",
+    "discord.js": "^14.16.3",
+    "@newsroom/pipeline": "workspace:*"
+  }
+}

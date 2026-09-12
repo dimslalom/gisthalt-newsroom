@@ -1,0 +1,30 @@
+{
+  "describes": "High-detail photo with no quiet corner. Forces pickLogoCorner into its strip fallback.",
+  "imagePath": "images/busy.png",
+  "claim": {
+    "vertical": "f1",
+    "claimType": "session_result",
+    "entities": {
+      "driver": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "session": "Balapan",
+      "meeting": "Spanyol GP"
+    },
+    "values": {
+      "position": 1,
+      "driver": "Max Verstappen",
+      "session": "Balapan",
+      "meeting": "Spanyol GP",
+      "duration": 5398.223
+    },
+    "supportingQuote": null,
+    "sourceTier": "A",
+    "sourceDomain": "api.openf1.org",
+    "observedAt": "2026-09-12T14:30:00.000Z",
+    "tags": [
+      "structured"
+    ],
+    "headline": "Verstappen menang di Madring",
+    "imageUrl": "images/busy.png"
+  }
+}

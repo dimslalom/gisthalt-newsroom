@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{color-scheme:light dark}
+*{}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Newsroom Build Spec</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #EDF1F2; --surface: #FFFFFF; --surface-2: #E3E9EB;
+    --line: #C4D0D4; --line-soft: #DAE2E4;
+    --text: #0D141A; --text-2: #46575E; --text-3: #6F8188;
+    --signal: #0A8A8F; --signal-soft: #D2EAEB;
+    --sand: #A1701A; --sand-soft: #F2E4C4;
+    --go: #1F7A4B; --go-soft: #D1E8DA;
+    --hold: #A5640F; --hold-soft: #F6E2C4;
+    --stop: #A6372A; --stop-soft: #F4D7D2;
+    --shadow: 0 1px 2px rgba(13,20,26,.06), 0 8px 24px -16px rgba(13,20,26,.3);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0A1015; --surface: #131D25; --surface-2: #1A2731;
+      --line: #2A3943; --line-soft: #212F37;
+      --text: #E5ECEE; --text-2: #9CAFB7; --text-3: #71858D;
+      --signal: #2FC6CB; --signal-soft: #11343A;
+      --sand: #DBA74E; --sand-soft: #332818;
+      --go: #4FBA80; --go-soft: #14301F;
+      --hold: #E0A03D; --hold-soft: #33260E;
+      --stop: #E46C5D; --stop-soft: #341A18;
+      --shadow: 0 1px 2px rgba(0,0,0,.45), 0 12px 32px -20px rgba(0,0,0,.85);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0A1015; --surface: #131D25; --surface-2: #1A2731;
+    --line: #2A3943; --line-soft: #212F37;
+    --text: #E5ECEE; --text-2: #9CAFB7; --text-3: #71858D;
+    --signal: #2FC6CB; --signal-soft: #11343A;
+    --sand: #DBA74E; --sand-soft: #332818;
+    --go: #4FBA80; --go-soft: #14301F;
+    --hold: #E0A03D; --hold-soft: #33260E;
+    --stop: #E46C5D; --stop-soft: #341A18;
+    --shadow: 0 1px 2px rgba(0,0,0,.45), 0 12px 32px -20px rgba(0,0,0,.85);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground); color: var(--text);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    font-size: 16px; line-height: 1.62; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding-inline: 24px; padding-block: 0 96px; }
+  .spine { max-width: 68ch; }
+
+  h1, h2, h3 {
+    font-family: "Saira Condensed", "Arial Narrow", system-ui, sans-serif;
+    font-weight: 700; text-wrap: balance; line-height: 1.06; letter-spacing: .005em;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--signal);
+  }
+  .eyebrow.sand { color: var(--sand); }
+
+  .mast { padding-block: 56px 38px; border-bottom: 2px solid var(--text); }
+  .mast h1 { font-size: clamp(44px, 8.5vw, 86px); text-transform: uppercase; margin: 14px 0 0; }
+  .mast .sub { margin: 18px 0 0; font-size: 19px; color: var(--text-2); max-width: 62ch; }
+  .mast-meta { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px 28px;
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--text-3); }
+  .mast-meta b { color: var(--text-2); font-weight: 500; }
+
+  section { padding-block: 52px 0; }
+  section > h2 { font-size: clamp(27px, 4vw, 38px); margin: 10px 0 18px; }
+  h3 { font-size: 21px; margin: 32px 0 10px; }
+  p { margin: 0 0 16px; }
+  .lede { font-size: 18px; color: var(--text-2); }
+  a { color: var(--signal); text-underline-offset: 2px; }
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .87em; }
+  code { background: var(--surface-2); padding: .1em .34em; border-radius: 3px; }
+  ul, ol { margin: 0 0 16px; padding-left: 22px; }
+  li { margin-bottom: 7px; }
+  li::marker { color: var(--text-3); }
+
+  .pill { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    letter-spacing: .07em; text-transform: uppercase; padding: 2.5px 7px; border-radius: 2px; white-space: nowrap; }
+  .pill.go { background: var(--go-soft); color: var(--go); }
+  .pill.hold { background: var(--hold-soft); color: var(--hold); }
+  .pill.stop { background: var(--stop-soft); color: var(--stop); }
+  .pill.sig { background: var(--signal-soft); color: var(--signal); }
+  .pill.sand { background: var(--sand-soft); color: var(--sand); }
+
+  /* decisions ledger */
+  .ledger { margin: 26px 0 8px; display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); }
+  .dec { background: var(--surface); display: grid; grid-template-columns: 190px 1fr; gap: 0 20px; padding: 14px 18px; }
+  .dec .q { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-3); padding-top: 4px; }
+  .dec .a b { font-weight: 600; }
+  .dec .a { font-size: 14.5px; color: var(--text-2); }
+  .dec .a b { color: var(--text); }
+
+  .alerts { display: grid; gap: 14px; margin: 24px 0 8px; }
+  .alert { display: grid; grid-template-columns: 4px 1fr; background: var(--surface); border: 1px solid var(--line-soft); box-shadow: var(--shadow); }
+  .alert .bar2 { background: var(--stop); }
+  .alert.warm .bar2 { background: var(--hold); }
+  .alert.good .bar2 { background: var(--go); }
+  .alert .body { padding: 18px 20px 20px; }
+  .alert h3 { margin: 2px 0 8px; font-size: 19px; }
+  .alert p:last-child { margin-bottom: 0; }
+
+  .tblwrap { overflow-x: auto; margin: 22px 0 10px; border: 1px solid var(--line-soft); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14.5px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  thead th { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--text-3); font-weight: 500; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.mono, th.mono { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-variant-numeric: tabular-nums; }
+  caption { caption-side: bottom; text-align: left; padding: 11px 14px; font-size: 12.5px; color: var(--text-3); border-top: 1px solid var(--line-soft); }
+
+  /* topology */
+  .topo { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin: 24px 0 8px; }
+  .box { background: var(--surface); border: 1px solid var(--line-soft); box-shadow: var(--shadow); }
+  .box .bh { padding: 15px 18px 13px; border-bottom: 1px solid var(--line-soft); }
+  .box .bh .k { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+  .box .bh .n { font-family: "Saira Condensed", sans-serif; font-weight: 700; font-size: 22px; margin-top: 5px; }
+  .box ul { margin: 0; padding: 14px 18px 16px 34px; font-size: 14px; }
+  .box ul li { color: var(--text-2); margin-bottom: 6px; }
+  .box ul li b { color: var(--text); font-weight: 600; }
+  .box.accent { border-color: var(--signal); }
+  .box.accent .bh { background: var(--signal-soft); border-bottom-color: var(--signal); }
+  .box.accent .bh .k, .box.accent .bh .n { color: var(--signal); }
+
+  /* repo tree */
+  pre.tree { background: var(--surface); border: 1px solid var(--line-soft); padding: 18px 20px; overflow-x: auto;
+    font-family: "IBM Plex Mono", monospace; font-size: 12.5px; line-height: 1.75; color: var(--text-2); margin: 22px 0 10px; }
+  pre.tree b { color: var(--text); font-weight: 500; }
+  pre.tree i { color: var(--text-3); font-style: normal; }
+
+  /* fixtures */
+  .fix { display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); margin: 22px 0 10px; }
+  .fixrow { background: var(--surface); display: grid; grid-template-columns: 210px 1fr; gap: 0 20px; padding: 14px 18px; }
+  .fixrow .fn { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--sand); padding-top: 2px; word-break: break-word; }
+  .fixrow .fd { font-size: 14.5px; color: var(--text-2); }
+  .fixrow .fd b { color: var(--text); font-weight: 600; }
+
+  /* tasks */
+  .phases { margin: 22px 0 10px; }
+  .phase { padding: 20px 0; border-top: 1px solid var(--line-soft); }
+  .phase:first-child { border-top: 1px solid var(--line); }
+  .phase .ph { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 4px; }
+  .phase .ph h3 { margin: 0; font-size: 22px; }
+  .phase .ph .when { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--sand); }
+  .phase > p { font-size: 14.5px; color: var(--text-2); margin: 6px 0 12px; }
+  .tasks { display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); }
+  .task { background: var(--surface); display: grid; grid-template-columns: 26px 1fr 96px; gap: 0 14px; padding: 11px 15px; align-items: start; font-size: 14.5px; }
+  .task .cb { width: 15px; height: 15px; border: 2px solid var(--line); margin-top: 5px; }
+  .task .cb.done { background: var(--go); border-color: var(--go); }
+  .task .tt { color: var(--text-2); }
+  .task .tt b { color: var(--text); font-weight: 600; }
+  .task .wh { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--text-3); text-align: right; padding-top: 4px; }
+  .exit { margin-top: 12px; font-size: 13.5px; color: var(--text-2); }
+  .exit b { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--sand); font-weight: 500; }
+
+  /* ramp */
+  .ramp { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); margin: 22px 0 8px; }
+  .rcell { background: var(--surface); padding: 15px 16px; }
+  .rcell .w { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); }
+  .rcell .v { font-family: "Saira Condensed", sans-serif; font-weight: 700; font-size: 32px; line-height: 1.05; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .rcell .d { font-size: 12.5px; color: var(--text-2); margin-top: 4px; line-height: 1.45; }
+  .rcell.manual .v { color: var(--hold); }
+  .rcell.full .v { color: var(--go); }
+
+  .qbox { background: var(--surface); border: 1px solid var(--line); padding: 24px; margin: 24px 0 0; box-shadow: var(--shadow); }
+  .qbox h3 { margin-top: 0; }
+  .qbox ol { margin-bottom: 0; }
+  .qbox li { color: var(--text-2); font-size: 15px; }
+  .qbox li b { color: var(--text); font-weight: 600; }
+
+  hr.rule { border: 0; border-top: 2px solid var(--text); margin: 0; }
+
+  @media (max-width: 620px) {
+    .dec, .fixrow { grid-template-columns: 1fr; gap: 4px; }
+    .task { grid-template-columns: 26px 1fr; }
+    .task .wh { grid-column: 2; text-align: left; padding-top: 2px; }
+  }
+</style>
+
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="eyebrow">Implementation spec / companion to the strategy doc / 12 Sep 2026</div>
+    <h1>Newsroom Build Spec</h1>
+    <p class="sub">Your answers locked seven decisions and changed the shape of the system. This is the task list that follows from them: runtime topology for Windows, the dashboard and its template lab, the edge-case fixture library, and the account warm-up schedule that keeps four automated accounts alive.</p>
+    <div class="mast-meta">
+      <span><b>Supersedes</b> Publishing and build-order sections of the strategy doc</span>
+      <span><b>First live test</b> Madrid GP, this weekend</span>
+      <span><b>Time to first post</b> ~4 weeks</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">Locked</div>
+    <h2>Decisions ledger</h2>
+    <div class="ledger">
+      <div class="dec"><div class="q">Publishing</div><div class="a"><b>Browser automation on all four platforms.</b> X, Instagram, Threads, TikTok. Revisit official APIs once an account earns.</div></div>
+      <div class="dec"><div class="q">Host</div><div class="a"><b>Windows PC with Docker Desktop.</b> Split runtime: Linux containers for the pipeline, a native Windows agent for publishing.</div></div>
+      <div class="dec"><div class="q">Language</div><div class="a"><b>TypeScript end to end</b>, pnpm monorepo, shared schema package. Playwright and templates in the same language as the pipeline.</div></div>
+      <div class="dec"><div class="q">Dashboard</div><div class="a"><b>Yes, and it is a first-class deliverable.</b> Template lab with edge-case fixtures, contact sheet, review queue, ops panel.</div></div>
+      <div class="dec"><div class="q">Accounts</div><div class="a"><b>None exist yet.</b> Naming, handle availability, bios and profile art become a parallel workstream in week 1.</div></div>
+      <div class="dec"><div class="q">Volume</div><div class="a"><b>Consistency over peaks</b>, ramped from zero. Targets and the warm-up schedule are below.</div></div>
+      <div class="dec"><div class="q">First vertical</div><div class="a"><b>F1.</b> Madrid GP is running right now, which makes this weekend a free live test of the data path.</div></div>
+      <div class="dec"><div class="q">Design tokens</div><div class="a"><b>Placeholders first.</b> Real brand identity lands after the pipeline works. A working placeholder set is already rendered.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow sand">Consequences</div>
+    <h2>Three things your answers changed</h2>
+    <div class="alerts">
+      <div class="alert good">
+        <div class="bar2"></div>
+        <div class="body">
+          <h3>Good news: the four-week Instagram wall is gone</h3>
+          <p>Meta's app review only gates the Graph API. Browser automation needs no app, no Business account, no linked Facebook Page, and no review. That removes the single longest blocker in the original plan and pulls first-post from roughly eight weeks to four.</p>
+          <p>Keep the Meta app on the shelf as the upgrade path. When an account earns enough to justify $11 a month on X and the reliability of official endpoints, you switch the publisher adapter and nothing else changes. That is exactly why the publisher is its own layer.</p>
+        </div>
+      </div>
+      <div class="alert">
+        <div class="bar2"></div>
+        <div class="body">
+          <h3>Bad news: new accounts plus automation is the riskiest possible combination</h3>
+          <p>Automated posting is against the terms of all four platforms. An account can be suspended with no appeal, and a brand-new account with no usage history that starts posting on a schedule is the easiest possible pattern to spot. This is a real cost of the path you chose, not a footnote.</p>
+          <p>It is survivable, and the warm-up schedule below is how. The non-negotiables: one browser profile per account, never shared; always your home IP; jittered human pacing; no bulk-follow or DM automation ever; and a full local archive of every post so a lost account can be rebuilt in a day rather than from nothing.</p>
+        </div>
+      </div>
+      <div class="alert warm">
+        <div class="bar2"></div>
+        <div class="body">
+          <h3>Windows splits the runtime in two, and fonts are the trap</h3>
+          <p>Docker Desktop runs Linux containers under WSL2. That is right for Postgres, the workers and the dashboard, and right for the <b>renderer</b>, where a fixed Linux container with pinned fonts gives byte-identical output every time. It is wrong for the <b>publisher</b>, which needs a real consumer browser fingerprint, a persistent profile, and a window you can watch when a login challenge appears.</p>
+          <p>So: pipeline in Docker, publisher as a native Windows Node process driving real Chrome. And <b>never preview templates in Windows Chrome</b>. Windows and Linux rasterise type differently, so a layout that fits in your preview can overflow in the render. The dashboard must preview by calling the container's renderer, not by displaying the HTML locally.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Runtime</div>
+    <h2>Topology on one Windows machine</h2>
+    <div class="topo">
+      <div class="box">
+        <div class="bh"><div class="k">Docker / WSL2</div><div class="n">Pipeline</div></div>
+        <ul>
+          <li><b>postgres</b> single source of truth, also the job queue via graphile-worker</li>
+          <li><b>poller</b> per-source cadence, 15s in live windows</li>
+          <li><b>extractor</b> Gemini Flash-Lite with the quote requirement</li>
+          <li><b>gate</b> the five deterministic rules</li>
+          <li><b>composer</b> archetype, layout, skin, accents, caption</li>
+          <li><b>renderer</b> Playwright Chromium, pinned fonts, warm page pool</li>
+          <li><b>reviewer</b> the Discord bot</li>
+          <li><b>dashboard</b> Next.js on localhost</li>
+        </ul>
+      </div>
+      <div class="box accent">
+        <div class="bh"><div class="k">Native Windows</div><div class="n">Publisher agent</div></div>
+        <ul>
+          <li>Node process launched by Task Scheduler at boot</li>
+          <li>Playwright driving <b>real Chrome</b>, not bundled Chromium</li>
+          <li>One <code>userDataDir</code> per account per platform, twelve in total</li>
+          <li>Polls Postgres for ready-to-publish jobs</li>
+          <li>Headed, on a visible desktop, so you can take over a login challenge</li>
+          <li>Reports session health back to <code>#alerts</code> every hour</li>
+        </ul>
+      </div>
+      <div class="box">
+        <div class="bh"><div class="k">Windows setup</div><div class="n">Uptime chores</div></div>
+        <ul>
+          <li>Disable sleep and hibernate, including on the display power plan</li>
+          <li>Docker Desktop set to start at login, WSL2 memory capped in <code>.wslconfig</code></li>
+          <li>Windows Update active hours set wide, auto-restart deferred</li>
+          <li>Auto-login so a reboot returns to a desktop session, since headed Chrome needs one</li>
+          <li>A watchdog that pings <code>#alerts</code> if any container or the agent is down two minutes</li>
+        </ul>
+      </div>
+    </div>
+    <p class="spine" style="font-size:14.5px;color:var(--text-2)">The renderer writes PNGs to a shared volume the publisher agent can read. No object storage needed, because browser automation uploads a local file rather than fetching a public URL. That removes the Cloudflare R2 dependency the API path required.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Repository</div>
+    <h2>Monorepo layout</h2>
+    <pre class="tree">newsroom/
+  packages/
+    <b>db</b>          <i>Drizzle schema + migrations. The one place the shape of data is defined.</i>
+    <b>core</b>        <i>Claim types, the five gate rules, dedupe hashing. Pure functions, heavily unit-tested.</i>
+    <b>sources</b>     <i>One adapter per source. openf1, jolpica, fia, tmdb, vlr, rss, reddit.</i>
+    <b>design</b>      <i>L1 tokens, L2 archetypes, L3 layouts, L4 skins, L5 accents, entity colour table,</i>
+                <i>the fit/contrast/logo guards, and the fixture library.</i>
+    <b>render</b>      <i>Playwright page pool, font pinning, PNG + golden-image diffing.</i>
+    <b>publish</b>     <i>Platform adapters behind one interface: publish(post) -> {url, id}.</i>
+                <i>browser/x.ts, browser/instagram.ts, browser/threads.ts, browser/tiktok.ts</i>
+                <i>api/x.ts etc. stay empty until you switch.</i>
+    <b>llm</b>         <i>Gemini model router, token buckets, prompt templates, response cache.</i>
+  apps/
+    <b>dashboard</b>   <i>Next.js. Template lab, contact sheet, review queue, ops.</i>
+    <b>workers</b>     <i>The graphile-worker task definitions. Runs in Docker.</i>
+    <b>agent</b>       <i>The native Windows publisher. The only thing outside Docker.</i>
+  fixtures/     <i>Committed JSON fixtures and their golden PNGs.</i>
+  brands/
+    <b>f1/</b>         <i>tokens.ts, archetypes/, copy.id.ts, entities.ts</i>
+    <b>vct/</b>        <i>added in phase 6</i>
+    <b>film/</b>       <i>added in phase 6</i></pre>
+    <p class="spine">The rule that keeps this honest: <b><code>apps/</code> contains no business logic.</b> If adding brand two requires editing anything under <code>apps/</code>, the layering has failed and it is cheaper to fix then than later.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Dashboard</div>
+    <h2>Four screens, and the template lab is the important one</h2>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Screen</th><th>What it does</th><th>Why it exists</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Template lab</b></td>
+            <td>Four dropdowns: fixture, archetype, layout, skin. Accent modules as toggles. Renders through the container renderer and shows the real PNG at true size and at feed size. A "render all variants" button produces the full matrix for one fixture.</td>
+            <td>This is where you design. Every layout must be provable against every fixture before it can ship, and looking at one render at a time is how broken edge cases reach production.</td>
+          </tr>
+          <tr>
+            <td><b>Contact sheet</b></td>
+            <td>Sixty posts from real historical data in a grid, plus a simulated profile grid showing the last nine as Instagram would arrange them.</td>
+            <td>Coherence and variety are properties of a set, not of a single image. The profile grid catches the specific failure where nine good posts look identical stacked together.</td>
+          </tr>
+          <tr>
+            <td><b>Review queue</b></td>
+            <td>The same items Discord shows, with a wider editing surface: caption editing with character counts per platform, variant reshuffle, source links, extracted claim and its supporting quote.</td>
+            <td>Discord is for approving in fifteen seconds on a phone. This is for the times you want to actually work on something.</td>
+          </tr>
+          <tr>
+            <td><b>Ops</b></td>
+            <td>Source health with last-success timestamps, queue depth, publish log with per-platform latency, session health for all twelve browser profiles, and the day's post count per account against target.</td>
+            <td>Sessions dying silently is the single most likely failure mode of the path you chose. It needs a screen, not just an alert.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Design QA</div>
+    <h2>The fixture library, and the guards that make layouts survive it</h2>
+    <div class="spine">
+      <p class="lede">Every fixture is a committed JSON file. Every layout renders against every fixture in CI, compared to a golden PNG with pixelmatch. A layout that has not passed the full fixture set cannot be selected by the composer, enforced in code rather than by discipline.</p>
+    </div>
+
+    <h3>Fixtures</h3>
+    <div class="fix">
+      <div class="fixrow"><div class="fn">title-overflow</div><div class="fd"><b>Four times the expected headline length.</b> Plus the longest real names in each vertical: constructor full legal names, Korean and Japanese VCT org names, film titles with subtitles and colons.</div></div>
+      <div class="fixrow"><div class="fn">title-underflow</div><div class="fd"><b>A one-word headline.</b> Under-fill breaks composition as badly as overflow, and it is the case nobody tests. A layout with a giant empty middle is a bug.</div></div>
+      <div class="fixrow"><div class="fn">image-missing</div><div class="fd"><b>No image, a 404, and a 120px thumbnail.</b> Each must fall back to a typography-only variant rather than render a grey box. Every archetype therefore needs at least one no-image layout.</div></div>
+      <div class="fixrow"><div class="fn">image-lowcontrast</div><div class="fd"><b>A white sky where white text goes</b>, and a dark frame where dark text goes. The contrast guard must trigger and be visibly correct, not just technically pass.</div></div>
+      <div class="fixrow"><div class="fn">image-busy</div><div class="fd"><b>High-detail photo with no quiet corner.</b> Forces the logo placer into its fallback, which is a solid strip rather than a corner.</div></div>
+      <div class="fixrow"><div class="fn">image-wrongratio</div><div class="fd"><b>Ultra-wide and ultra-tall sources.</b> Smart crop must keep the subject, and the result must still be 4:5 because Instagram crops a carousel to slide one regardless.</div></div>
+      <div class="fixrow"><div class="fn">data-missing</div><div class="fd"><b>DNS, DNF, no gap, no lap count, a release date of "TBA".</b> Missing values render as an em-free dash, never as blank space or the string "undefined".</div></div>
+      <div class="fixrow"><div class="fn">data-extremes</div><div class="fd"><b>A 4-row classification and a 22-row one.</b> Plus gap values spanning +0.002 to +1 LAP, which have wildly different widths in a tabular column.</div></div>
+      <div class="fixrow"><div class="fn">colour-clash</div><div class="fd"><b>A near-white entity colour on the light skin</b>, and a near-black one on the dark skin. The entity table's contrast pairing must kick in and swap the text colour.</div></div>
+      <div class="fixrow"><div class="fn">diacritics</div><div class="fd"><b>Hulkenberg, Perez, Norrkoping, Nurburgring, plus Hangul and Kana org names.</b> Catches missing glyphs in the pinned font set, which is exactly what silently falls back to a different typeface.</div></div>
+    </div>
+
+    <h3>Guards</h3>
+    <p class="spine">Four pure functions in <code>packages/design</code>, unit-tested independently of any layout. They are what turn "handle the edge case" from a per-layout chore into a property of the system.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th class="mono">Guard</th><th>How it works</th><th>Failure behaviour</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">fitText()</td><td>Binary-searches font size between a floor and a ceiling using the browser's own measurement, then clamps to a line count, then ellipsises. Never a fixed size and a hope.</td><td>Below the floor, switches to a longer-headline layout variant.</td></tr>
+          <tr><td class="mono">pickTextTreatment()</td><td>Samples mean luminance and standard deviation of the image region under the text, via sharp. Returns a scrim opacity and a text colour. Deterministic, so it is testable without rendering.</td><td>If variance is too high for any scrim, returns "no text over image" and the layout moves the text to a solid panel.</td></tr>
+          <tr><td class="mono">pickLogoCorner()</td><td>Scores edge density in each of the four corners, lowest wins, with a fixed tie-break order so placement stays consistent across a series rather than jumping around.</td><td>If every corner scores busy, returns "strip" and the logo goes in a solid bar.</td></tr>
+          <tr><td class="mono">assertContrast()</td><td>Runs a WCAG ratio check on every text-on-background pair the layout actually resolved, after skin and entity colour injection.</td><td><b>Fails the render.</b> An unreadable post is worse than a missed post, so it goes to review rather than out.</td></tr>
+        </tbody>
+        <caption>Golden-image tests catch visual drift. These guards catch data the golden images never contained. You need both.</caption>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Operations</div>
+    <h2>Warm-up and volume</h2>
+    <div class="spine">
+      <p class="lede">Consistency is the aim, so the schedule matters more than the peak. But a brand-new account that starts at twelve posts a day is a brand-new account that gets suspended. Ramp it.</p>
+    </div>
+    <div class="ramp">
+      <div class="rcell manual"><div class="w">Weeks 1-2</div><div class="v">0</div><div class="d">Automated posts. Post by hand from your phone, follow people, comment, scroll. You are building a usage history.</div></div>
+      <div class="rcell manual"><div class="w">Week 3</div><div class="v">2-3</div><div class="d">First automated posts, and only during hours you would plausibly be awake.</div></div>
+      <div class="rcell"><div class="w">Week 4</div><div class="v">4-6</div><div class="d">Still mixing in manual posts and manual engagement so the pattern is not purely mechanical.</div></div>
+      <div class="rcell"><div class="w">Weeks 5-6</div><div class="v">6-9</div><div class="d">Live event coverage switched on, which naturally clusters posts around real-world timing.</div></div>
+      <div class="rcell full"><div class="w">Steady, quiet day</div><div class="v">5-7</div><div class="d">The floor. Consistency lives here, not on race weekends.</div></div>
+      <div class="rcell full"><div class="w">Steady, event day</div><div class="v">12-16</div><div class="d">Race Sunday or a VCT match day. Clustering is fine because the events are real.</div></div>
+    </div>
+    <p class="spine">Roughly 250 posts a month per account at steady state. Two pacing rules the publisher must enforce in code, not in a cron expression: <b>jitter every interval</b> by a random 0 to 9 minutes so the cadence is never exact, and <b>never post between 01:00 and 06:00 local</b> unless a real event is running, because a 3am post with no event behind it is a pure bot signal.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Plan</div>
+    <h2>The task list</h2>
+    <div class="spine"><p class="lede">Seven phases. Phase 0 is this weekend and is already half done. Nothing publishes to a real account before week 3, which is also when the warm-up says it is allowed to.</p></div>
+
+    <div class="phases">
+
+      <div class="phase">
+        <div class="ph"><h3>Phase 0: prove the data path</h3><span class="when">This weekend</span></div>
+        <p>Madrid GP is running now. Qualifying and the race are both still ahead, which is a free live test you will not get again for two weeks.</p>
+        <div class="tasks">
+          <div class="task"><div class="cb done"></div><div class="tt"><b>Confirm OpenF1 returns live 2026 data.</b> Meeting 1294, Madring. Sessions, results, drivers and team colours all verified.</div><div class="wh">done</div></div>
+          <div class="task"><div class="cb done"></div><div class="tt"><b>Render a real post from real results.</b> FP2 classification through four layout variants plus an edge-case board, at 1080x1350.</div><div class="wh">done</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Time the live path.</b> Poll <code>session_result</code> for qualifying and the race, and record how many seconds after the session ends the data appears. That number sets the whole latency budget.</div><div class="wh">this weekend</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Spike Jolpica and the FIA document feed</b> for standings and penalties, which OpenF1 does not carry.</div><div class="wh">this weekend</div></div>
+        </div>
+        <div class="exit"><b>Exit</b> You know exactly how fast F1 results become available, which tells you whether "under sixty seconds" is a promise you can make.</div>
+      </div>
+
+      <div class="phase">
+        <div class="ph"><h3>Phase 1: foundations and accounts</h3><span class="when">Week 1</span></div>
+        <p>Two tracks in parallel. The engineering track and the brand track do not block each other.</p>
+        <div class="tasks">
+          <div class="task"><div class="cb"></div><div class="tt"><b>Scaffold the monorepo</b>, Docker Compose with Postgres and graphile-worker, Drizzle schema for items, claims, decisions, compositions, posts and sessions.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Windows uptime chores.</b> Sleep off, Docker on login, update restarts deferred, auto-login, watchdog.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Name the F1 brand and check handle availability</b> across X, Instagram, Threads and TikTok simultaneously. Take all four even if you launch on one.</div><div class="wh">brand</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Create the account and start using it like a person.</b> This starts the two-week warm-up clock, so it must happen in week 1 regardless of code progress.</div><div class="wh">brand</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Private Discord server</b> with <code>#review-f1</code>, <code>#published</code>, <code>#alerts</code>, and a firehose channel.</div><div class="wh">eng</div></div>
+        </div>
+        <div class="exit"><b>Exit</b> The warm-up clock is running and <code>docker compose up</code> brings up a healthy empty system.</div>
+      </div>
+
+      <div class="phase">
+        <div class="ph"><h3>Phase 2: ingest, gate, firehose</h3><span class="when">Week 1-2</span></div>
+        <p>The whole pipeline except design and publishing. Nothing goes public.</p>
+        <div class="tasks">
+          <div class="task"><div class="cb"></div><div class="tt"><b>Source adapters:</b> openf1, jolpica, fia, plus RSS for the tier B allowlist and Reddit for r/formula1.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Dedupe before extraction.</b> Hash on entity plus event plus value, so one result arriving from four sources costs one model call at most.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Gemini router</b> with persisted per-model token buckets and the fallback ladder. Flash-Lite for extraction, Flash for copy, Pro reserved.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>The five gate rules as pure functions</b>, unit-tested against recorded fixtures from real news items.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Firehose to Discord</b>, each item labelled with the rule that fired and why.</div><div class="wh">eng</div></div>
+        </div>
+        <div class="exit"><b>Exit</b> You have watched a full race weekend through the firehose and you agree with the gate on nearly every call.</div>
+      </div>
+
+      <div class="phase">
+        <div class="ph"><h3>Phase 3: the design system and the lab</h3><span class="when">Week 2-3</span></div>
+        <p>Placeholder tokens, real structure. This phase produces the thing you asked for: layouts provable against every edge case.</p>
+        <div class="tasks">
+          <div class="task"><div class="cb"></div><div class="tt"><b>Port the placeholder tokens</b> already rendered into <code>brands/f1/tokens.ts</code> as L1.</div><div class="wh">design</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Seven archetypes, four layouts each.</b> Session result, classification, standings, penalty, driver line, schedule, quote.</div><div class="wh">design</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>The four guards</b> with their own unit tests, before any layout depends on them.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>The ten fixtures</b> as committed JSON, plus golden PNGs and a pixelmatch CI check.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Template lab and contact sheet</b> in the dashboard, rendering through the container so previews match production.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Shuffle-bag selection</b> with the last twelve compositions tracked per account.</div><div class="wh">eng</div></div>
+        </div>
+        <div class="exit"><b>Exit</b> Every layout passes every fixture, and sixty renders read as one brand with no two adjacent tiles alike.</div>
+      </div>
+
+      <div class="phase">
+        <div class="ph"><h3>Phase 4: the publisher agent</h3><span class="when">Week 3</span></div>
+        <p>The riskiest component, built after everything else works, so its failures are isolated and legible.</p>
+        <div class="tasks">
+          <div class="task"><div class="cb"></div><div class="tt"><b>Native Windows agent</b> with one persistent Chrome profile per account per platform and a manual first login for each.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>X adapter first.</b> Simplest composer, most forgiving platform, fastest feedback.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Session health monitor.</b> Hourly check that each profile is still logged in, with a Discord alert and a screenshot when one is not.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Pacing enforcement in code:</b> jitter, quiet hours, daily cap, and a global kill switch.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Post archive.</b> Every published image, caption and source link stored locally, so a suspended account is a rebuild rather than a loss.</div><div class="wh">eng</div></div>
+        </div>
+        <div class="exit"><b>Exit</b> A real F1 session result posts to X automatically, and you can prove it took under sixty seconds.</div>
+      </div>
+
+      <div class="phase">
+        <div class="ph"><h3>Phase 5: review loop and the rest of the platforms</h3><span class="when">Week 4-5</span></div>
+        <div class="tasks">
+          <div class="task"><div class="cb"></div><div class="tt"><b>Discord review card</b> with one-tap publish, edit modal, reshuffle, hold-for-second-source, reject, and <code>/retract</code> on day one.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Indonesian caption copy</b> via Flash, cached by claim hash, with per-platform length variants.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Enable gate rules R2 and R3</b> once the quote requirement has proven itself on real items.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Instagram and Threads adapters.</b> Instagram is the hardest browser target, so budget real time for the upload flow.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Carousel sequence grammar</b> plus the simulated profile grid in the contact sheet.</div><div class="wh">design</div></div>
+        </div>
+        <div class="exit"><b>Exit</b> You approve a breaking item from your phone in under fifteen seconds, and one item fans out to three platforms.</div>
+      </div>
+
+      <div class="phase">
+        <div class="ph"><h3>Phase 6: real identity, then clone</h3><span class="when">Week 6-8</span></div>
+        <div class="tasks">
+          <div class="task"><div class="cb"></div><div class="tt"><b>Replace placeholder tokens with the real F1 brand identity.</b> By now you have seen hundreds of renders and you will design a far better system than you could have in week one.</div><div class="wh">design</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>TikTok adapter</b> and the start of that account's own warm-up.</div><div class="wh">eng</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>VCT brand</b> as configuration: tokens, archetypes, entity colours, source adapters. No changes under <code>apps/</code>.</div><div class="wh">both</div></div>
+          <div class="task"><div class="cb"></div><div class="tt"><b>Film and TV brand</b>, same way. TMDB makes its image rights the simplest of the three.</div><div class="wh">both</div></div>
+        </div>
+        <div class="exit"><b>Exit</b> Brand three ships without touching service code. If it cannot, fix the layering now rather than at brand four.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Next</div>
+    <h2>What I would do first</h2>
+    <div class="qbox">
+      <h3>Three things, in this order</h3>
+      <ol>
+        <li><b>Today, before qualifying:</b> a throwaway script that polls OpenF1 for the qualifying session and logs a timestamp the moment results appear. Ten minutes of work, and it answers the only question that determines whether the whole latency promise is real.</li>
+        <li><b>Today or tomorrow:</b> pick the F1 brand name and claim the handle on all four platforms. The warm-up clock is the longest pole left in the plan, and it costs nothing to start it before any code exists.</li>
+        <li><b>Then:</b> scaffold the monorepo and the Docker Compose file, so phase 2 has somewhere to land.</li>
+      </ol>
+    </div>
+    <p class="spine" style="margin-top:22px">One open question I did not decide for you: whether the three brands share a visual family (a recognisable house style across all three accounts) or are fully independent identities. Sharing means one token system and far less design work; independence means each account can look native to its own fandom, which matters more than it sounds when the audiences barely overlap.</p>
+  </section>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "describes": "White sky where white text goes, dark frame where dark text goes. The scrim must visibly work.",
+  "imagePath": "images/lowcontrast.png",
+  "claim": {
+    "vertical": "f1",
+    "claimType": "session_result",
+    "entities": {
+      "driver": "Oscar Piastri",
+      "team": "McLaren",
+      "session": "Kualifikasi",
+      "meeting": "Spanyol GP"
+    },
+    "values": {
+      "position": 1,
+      "driver": "Oscar Piastri",
+      "session": "Kualifikasi",
+      "meeting": "Spanyol GP",
+      "duration": 92.114
+    },
+    "supportingQuote": null,
+    "sourceTier": "A",
+    "sourceDomain": "api.openf1.org",
+    "observedAt": "2026-09-12T14:30:00.000Z",
+    "tags": [
+      "structured"
+    ],
+    "headline": "Piastri rebut pole",
+    "imageUrl": "images/lowcontrast.png"
+  }
+}

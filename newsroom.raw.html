@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{color-scheme:light dark}
+*{}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Three-Feed Newsroom</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #EDF1F2;
+    --surface: #FFFFFF;
+    --surface-2: #E3E9EB;
+    --line: #C4D0D4;
+    --line-soft: #DAE2E4;
+    --text: #0D141A;
+    --text-2: #46575E;
+    --text-3: #6F8188;
+    --signal: #0A8A8F;
+    --signal-soft: #D2EAEB;
+    --sand: #A1701A;
+    --sand-soft: #F2E4C4;
+    --go: #1F7A4B;
+    --go-soft: #D1E8DA;
+    --hold: #A5640F;
+    --hold-soft: #F6E2C4;
+    --stop: #A6372A;
+    --stop-soft: #F4D7D2;
+    --bar-dim: #BFCCD0;
+    --shadow: 0 1px 2px rgba(13,20,26,.06), 0 8px 24px -16px rgba(13,20,26,.3);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0A1015;
+      --surface: #131D25;
+      --surface-2: #1A2731;
+      --line: #2A3943;
+      --line-soft: #212F37;
+      --text: #E5ECEE;
+      --text-2: #9CAFB7;
+      --text-3: #71858D;
+      --signal: #2FC6CB;
+      --signal-soft: #11343A;
+      --sand: #DBA74E;
+      --sand-soft: #332818;
+      --go: #4FBA80;
+      --go-soft: #14301F;
+      --hold: #E0A03D;
+      --hold-soft: #33260E;
+      --stop: #E46C5D;
+      --stop-soft: #341A18;
+      --bar-dim: #2E3F49;
+      --shadow: 0 1px 2px rgba(0,0,0,.45), 0 12px 32px -20px rgba(0,0,0,.85);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0A1015;
+    --surface: #131D25;
+    --surface-2: #1A2731;
+    --line: #2A3943;
+    --line-soft: #212F37;
+    --text: #E5ECEE;
+    --text-2: #9CAFB7;
+    --text-3: #71858D;
+    --signal: #2FC6CB;
+    --signal-soft: #11343A;
+    --sand: #DBA74E;
+    --sand-soft: #332818;
+    --go: #4FBA80;
+    --go-soft: #14301F;
+    --hold: #E0A03D;
+    --hold-soft: #33260E;
+    --stop: #E46C5D;
+    --stop-soft: #341A18;
+    --bar-dim: #2E3F49;
+    --shadow: 0 1px 2px rgba(0,0,0,.45), 0 12px 32px -20px rgba(0,0,0,.85);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1060px; margin: 0 auto; padding-inline: 24px; padding-block: 0 96px; }
+  .spine { max-width: 68ch; }
+
+  h1, h2, h3, .display {
+    font-family: "Saira Condensed", "Arial Narrow", system-ui, sans-serif;
+    font-weight: 700; text-wrap: balance; line-height: 1.06; letter-spacing: .005em;
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px; font-weight: 500; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--signal);
+  }
+  .eyebrow.sand { color: var(--sand); }
+
+  .mast { padding-block: 56px 38px; border-bottom: 2px solid var(--text); }
+  .mast h1 { font-size: clamp(46px, 9vw, 92px); text-transform: uppercase; margin: 14px 0 0; }
+  .mast .sub { margin: 18px 0 0; font-size: 19px; color: var(--text-2); max-width: 62ch; }
+  .mast-meta {
+    margin-top: 28px; display: flex; flex-wrap: wrap; gap: 8px 28px;
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--text-3);
+  }
+  .mast-meta b { color: var(--text-2); font-weight: 500; }
+
+  section { padding-block: 54px 0; }
+  section > h2 { font-size: clamp(27px, 4vw, 38px); margin: 10px 0 18px; }
+  h3 { font-size: 21px; margin: 34px 0 10px; letter-spacing: .01em; }
+  p { margin: 0 0 16px; }
+  .lede { font-size: 18px; color: var(--text-2); }
+  a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .87em; }
+  code { background: var(--surface-2); padding: .1em .34em; border-radius: 3px; }
+  ul, ol { margin: 0 0 16px; padding-left: 22px; }
+  li { margin-bottom: 7px; }
+  li::marker { color: var(--text-3); }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* key figures strip */
+  .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); margin: 26px 0 6px; }
+  .fig { background: var(--surface); padding: 16px 18px 15px; }
+  .fig .v { font-family: "Saira Condensed", sans-serif; font-weight: 700; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .fig .k { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); margin-top: 7px; line-height: 1.45; }
+
+  /* bar comparison */
+  .chart { margin: 24px 0 6px; background: var(--surface); border: 1px solid var(--line-soft); padding: 20px 20px 14px; }
+  .chart .ct { font-family: "Saira Condensed", sans-serif; font-weight: 600; font-size: 19px; }
+  .chart .cs { font-size: 13.5px; color: var(--text-3); margin-bottom: 18px; }
+  .bars { display: grid; gap: 11px; }
+  .bar { display: grid; grid-template-columns: 92px 1fr 68px; align-items: center; gap: 0 14px; }
+  .bar .bl { font-size: 14px; color: var(--text-2); }
+  .bar .btrack { height: 15px; background: transparent; }
+  .bar .bfill { height: 15px; background: var(--bar-dim); border-radius: 0 4px 4px 0; }
+  .bar.on .bfill { background: var(--signal); }
+  .bar.on .bl { color: var(--text); font-weight: 500; }
+  .bar .bv { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--text-2); text-align: right; }
+  .bar.on .bv { color: var(--text); }
+  .chart .leg { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--line-soft); font-size: 12.5px; color: var(--text-3); }
+  .chart .leg span { display: inline-flex; align-items: center; gap: 7px; }
+  .chart .leg i { width: 11px; height: 11px; display: inline-block; }
+
+  /* alerts */
+  .alerts { display: grid; gap: 14px; margin: 26px 0 8px; }
+  .alert { display: grid; grid-template-columns: 4px 1fr; background: var(--surface); border: 1px solid var(--line-soft); box-shadow: var(--shadow); }
+  .alert .bar2 { background: var(--stop); }
+  .alert.warm .bar2 { background: var(--hold); }
+  .alert.good .bar2 { background: var(--go); }
+  .alert .body { padding: 18px 20px 20px; }
+  .alert h3 { margin: 2px 0 8px; font-size: 19px; }
+  .alert p:last-child { margin-bottom: 0; }
+
+  /* pipeline */
+  .pipe { margin: 26px 0 8px; display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); }
+  .stage { background: var(--surface); display: grid; grid-template-columns: 52px 1fr 116px; align-items: start; gap: 0 18px; padding: 15px 18px; }
+  .stage .n { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--text-3); padding-top: 3px; letter-spacing: .04em; }
+  .stage .t { font-family: "Saira Condensed", sans-serif; font-weight: 600; font-size: 19px; letter-spacing: .01em; }
+  .stage .d { color: var(--text-2); font-size: 14.5px; margin-top: 2px; }
+  .stage .ms { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; text-align: right; color: var(--signal); font-variant-numeric: tabular-nums; padding-top: 4px; }
+  .stage.gate { background: var(--signal-soft); }
+  .pipe-foot { background: var(--surface-2); padding: 13px 18px; font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--text-2); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  /* tables */
+  .tblwrap { overflow-x: auto; margin: 22px 0 10px; border: 1px solid var(--line-soft); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14.5px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  thead th { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); font-weight: 500; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.mono, th.mono { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-variant-numeric: tabular-nums; }
+  caption { caption-side: bottom; text-align: left; padding: 11px 14px; font-size: 12.5px; color: var(--text-3); border-top: 1px solid var(--line-soft); }
+
+  .pill { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; padding: 2.5px 7px; border-radius: 2px; white-space: nowrap; }
+  .pill.go { background: var(--go-soft); color: var(--go); }
+  .pill.hold { background: var(--hold-soft); color: var(--hold); }
+  .pill.stop { background: var(--stop-soft); color: var(--stop); }
+  .pill.sig { background: var(--signal-soft); color: var(--signal); }
+  .pill.sand { background: var(--sand-soft); color: var(--sand); }
+
+  /* vertical cards */
+  .verts { display: grid; gap: 16px; margin: 24px 0 10px; grid-template-columns: repeat(auto-fit, minmax(286px, 1fr)); }
+  .vert { background: var(--surface); border: 1px solid var(--line-soft); padding: 20px; box-shadow: var(--shadow); }
+  .vert h3 { margin: 0 0 3px; font-size: 21px; }
+  .vert .verdict { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--sand); margin-bottom: 12px; }
+  .vert dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 7px 12px; font-size: 13.5px; }
+  .vert dt { color: var(--text-3); }
+  .vert dd { margin: 0; text-align: right; font-family: "IBM Plex Mono", monospace; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .vert p { font-size: 14px; color: var(--text-2); margin: 14px 0 0; padding-top: 13px; border-top: 1px solid var(--line-soft); }
+
+  /* calendar strip */
+  .cal { margin: 24px 0 6px; background: var(--surface); border: 1px solid var(--line-soft); padding: 20px; overflow-x: auto; }
+  .calgrid { min-width: 560px; display: grid; grid-template-columns: 86px repeat(7, 1fr); gap: 4px; align-items: center; }
+  .calgrid .hd { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); text-align: center; }
+  .calgrid .rl { font-size: 13.5px; color: var(--text-2); }
+  .cell { height: 26px; background: var(--surface-2); display: grid; place-items: center; font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--text-3); }
+  .cell.hi { background: var(--signal); color: var(--ground); }
+  .cell.mid { background: var(--signal-soft); color: var(--signal); }
+
+  /* layer stack */
+  .stack { margin: 24px 0 10px; display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); }
+  .layer { background: var(--surface); padding: 16px 18px; display: grid; grid-template-columns: 28px 1fr; gap: 0 16px; }
+  .layer .lv { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--sand); padding-top: 4px; }
+  .layer .nm { font-family: "Saira Condensed", sans-serif; font-weight: 600; font-size: 19px; }
+  .layer .ds { font-size: 14.5px; color: var(--text-2); margin-top: 3px; }
+  .layer .ds b { color: var(--text); font-weight: 600; }
+  .layer.fixed { border-left: 3px solid var(--signal); }
+  .layer.varies { border-left: 3px solid var(--sand); }
+
+  .mathline { background: var(--surface-2); border: 1px solid var(--line-soft); padding: 16px 18px; font-family: "IBM Plex Mono", monospace; font-size: 13.5px; color: var(--text-2); display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 10px; margin: 18px 0; }
+  .mathline .eq { color: var(--text); font-weight: 500; }
+  .mathline .res { color: var(--signal); font-weight: 500; font-size: 18px; font-variant-numeric: tabular-nums; }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 6px; }
+  .sw { border: 1px solid var(--line-soft); background: var(--surface); display: grid; grid-template-columns: 34px 1fr; min-width: 166px; flex: 1 1 166px; }
+  .sw .chip { min-height: 46px; }
+  .sw .lab { padding: 7px 10px; }
+  .sw .lab .team { font-size: 13px; font-weight: 500; line-height: 1.25; }
+  .sw .lab .hex { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--text-3); }
+
+  /* phases */
+  .phases { margin: 24px 0 10px; }
+  .phase { display: grid; grid-template-columns: 96px 1fr; gap: 0 20px; padding: 18px 0; border-top: 1px solid var(--line-soft); }
+  .phase:first-child { border-top: 1px solid var(--line); }
+  .phase .tag { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--text-3); padding-top: 4px; letter-spacing: .04em; }
+  .phase .tag em { display: block; font-style: normal; color: var(--sand); margin-top: 3px; }
+  .phase h3 { margin: 0 0 6px; font-size: 20px; }
+  .phase p { font-size: 14.5px; color: var(--text-2); margin-bottom: 8px; }
+  .phase .done { font-size: 13.5px; }
+  .phase .done b { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--sand); font-weight: 500; }
+
+  /* discord mock */
+  .mock { background: var(--surface); border: 1px solid var(--line-soft); box-shadow: var(--shadow); margin: 24px 0 10px; max-width: 520px; }
+  .mock .top { padding: 14px 16px 12px; border-left: 3px solid var(--hold); }
+  .mock .who { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--text-3); letter-spacing: .08em; text-transform: uppercase; }
+  .mock .title { font-family: "Saira Condensed", sans-serif; font-weight: 600; font-size: 20px; margin-top: 5px; }
+  .mock dl.kv { display: grid; grid-template-columns: 84px 1fr; gap: 3px 12px; margin: 12px 0 0; font-size: 13.5px; }
+  .mock dl.kv dt { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); padding-top: 3px; }
+  .mock dl.kv dd { margin: 0; color: var(--text-2); }
+  .mock .prev { height: 92px; background: var(--surface-2); border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); display: grid; place-items: center; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--text-3); letter-spacing: .1em; }
+  .mock .btns { display: flex; flex-wrap: wrap; gap: 8px; padding: 13px 16px; }
+  .btn { font-size: 13px; font-weight: 500; padding: 6px 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text-2); border-radius: 3px; }
+  .btn.primary { background: var(--signal); border-color: var(--signal); color: var(--ground); }
+
+  .risks { display: grid; gap: 14px; margin: 24px 0 10px; }
+  .risk { display: grid; grid-template-columns: 128px 1fr; gap: 4px 20px; padding-bottom: 14px; border-bottom: 1px solid var(--line-soft); }
+  .risk:last-child { border-bottom: 0; }
+  .risk .lv { padding-top: 2px; }
+  .risk .tx { font-size: 14.5px; color: var(--text-2); }
+  .risk .tx b { color: var(--text); font-weight: 600; }
+
+  .qbox { background: var(--surface); border: 1px solid var(--line); padding: 24px; margin: 26px 0 0; box-shadow: var(--shadow); }
+  .qbox h3 { margin-top: 0; }
+  .qbox ol { margin-bottom: 0; }
+  .qbox li { color: var(--text-2); font-size: 15px; }
+  .qbox li b { color: var(--text); font-weight: 600; }
+
+  hr.rule { border: 0; border-top: 2px solid var(--text); margin: 0; }
+
+  .srcs { margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--line-soft); font-size: 13px; color: var(--text-3); }
+  .srcs h3 { font-size: 15px; margin: 0 0 8px; color: var(--text-2); }
+  .srcs p { margin-bottom: 6px; }
+
+  @media (max-width: 560px) {
+    .stage { grid-template-columns: 40px 1fr; }
+    .stage .ms { grid-column: 2; text-align: left; padding-top: 6px; }
+    .phase, .risk { grid-template-columns: 1fr; gap: 6px; }
+    .mock dl.kv { grid-template-columns: 1fr; }
+    .mock dl.kv dd { margin-bottom: 6px; }
+    .bar { grid-template-columns: 74px 1fr 58px; gap: 0 10px; }
+  }
+</style>
+
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="eyebrow">Market research and system blueprint / 12 Sep 2026</div>
+    <h1>Three-Feed Newsroom</h1>
+    <p class="sub">Three Indonesian-language accounts (VCT, F1, Film &amp; TV) publishing verified facts in under a minute, with everything uncertain routed to you on Discord. One home PC, a Gemini key, a template system instead of a generative designer.</p>
+    <div class="mast-meta">
+      <span><b>Verdict</b> Build it, in this order</span>
+      <span><b>Wedge</b> Completeness and latency, not scoops</span>
+      <span><b>Running cost</b> $11 to $35 / month</span>
+      <span><b>Time to first post</b> 3 weeks</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">Part one / market</div>
+    <h2>Indonesia is an Instagram market with a dense X minority</h2>
+    <div class="spine">
+      <p class="lede">You chose Indonesian, which is the right call: it is where the competition thins out and where the growth signal is. But the platform mix you assumed does not match the market. X has roughly a fifth of Instagram's reach here.</p>
+    </div>
+
+    <div class="figs">
+      <div class="fig"><div class="v">230<span style="font-size:20px">M</span></div><div class="k">Internet users<br>80.5% of population</div></div>
+      <div class="fig"><div class="v">180<span style="font-size:20px">M</span></div><div class="k">Social media<br>identities</div></div>
+      <div class="fig"><div class="v">30.4</div><div class="k">Median age<br>of population</div></div>
+      <div class="fig"><div class="v">831<span style="font-size:20px">M</span></div><div class="k">Global F1 fans<br>Gen Z led growth</div></div>
+      <div class="fig"><div class="v">218<span style="font-size:20px">M</span></div><div class="k">VCT 2026 hours<br>watched, +3.1%</div></div>
+    </div>
+
+    <div class="chart">
+      <div class="ct">Platform reach in Indonesia, 2026</div>
+      <div class="cs">Reported advertising reach. Teal marks the platforms this system publishes to.</div>
+      <div class="bars">
+        <div class="bar" title="TikTok: 180 million adults"><div class="bl">TikTok</div><div class="btrack"><div class="bfill" style="width:100%"></div></div><div class="bv">180M</div></div>
+        <div class="bar" title="YouTube: 151 million"><div class="bl">YouTube</div><div class="btrack"><div class="bfill" style="width:83.9%"></div></div><div class="bv">151M</div></div>
+        <div class="bar" title="Facebook: 121 million"><div class="bl">Facebook</div><div class="btrack"><div class="bfill" style="width:67.2%"></div></div><div class="bv">121M</div></div>
+        <div class="bar on" title="Instagram: 108 million"><div class="bl">Instagram</div><div class="btrack"><div class="bfill" style="width:60.0%"></div></div><div class="bv">108M</div></div>
+        <div class="bar on" title="X: 22.9 million"><div class="bl">X</div><div class="btrack"><div class="bfill" style="width:12.7%"></div></div><div class="bv">22.9M</div></div>
+      </div>
+      <div class="leg">
+        <span><i style="background:var(--signal)"></i>In this plan</span>
+        <span><i style="background:var(--bar-dim)"></i>Not at launch</span>
+        <span>TikTok figure is adults 18+; others are total reported reach.</span>
+      </div>
+    </div>
+
+    <div class="spine">
+      <p>Three conclusions follow, and they reorder your platform list.</p>
+      <p><b>Instagram is the prize, not X.</b> 108 million reachable people against 22.9 million, and Instagram is image-and-carousel native, which is exactly the format you picked. Every design decision should be made for a 4:5 Instagram frame first and adapted outward.</p>
+      <p><b>X stays anyway, for two reasons unrelated to its size.</b> Indonesian X is unusually dense for fandom conversation, so the 22.9 million skews hard toward exactly the people who follow VCT and F1 accounts. And it is the only platform you can ship to this week, because Instagram has a multi-week app review in front of it. X is your engineering proving ground and your speed channel.</p>
+      <p><b>YouTube is out and TikTok is in, eventually.</b> Community posts have no API and never have. TikTok has 180 million adults and accepts photo posts, but it gates real publishing behind an audit, and unaudited apps can only post privately. That makes TikTok a phase-five item with its own review clock, not a launch platform.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow sand">Part one / market</div>
+    <h2>The three verticals are not equally good bets</h2>
+    <div class="spine">
+      <p class="lede">They score differently on the only four things that matter for an automated feed: how much of the news arrives as structured data, how crowded the Indonesian-language space is, how much volume there is to post, and whether the calendar has dead weeks.</p>
+    </div>
+
+    <div class="verts">
+      <div class="vert">
+        <h3>Formula 1</h3>
+        <div class="verdict">Strongest bet / start here</div>
+        <dl>
+          <dt>Structured-data share</dt><dd>~70%</dd>
+          <dt>Indonesian competition</dt><dd>Low</dd>
+          <dt>Posts per race weekend</dt><dd>60-90</dd>
+          <dt>Dead weeks per year</dt><dd>~12</dd>
+        </dl>
+        <p>The best data in sport is free and open. OpenF1 and Jolpica give you timing, classifications and standings without a contract. Almost nobody covers F1 in Indonesian at speed, and the global fanbase is young and still growing. The catch is lumpiness: enormous weekends, quiet Wednesdays.</p>
+      </div>
+      <div class="vert">
+        <h3>Valorant Champions Tour</h3>
+        <div class="verdict">Good bet / hardest competition</div>
+        <dl>
+          <dt>Structured-data share</dt><dd>~65%</dd>
+          <dt>Indonesian competition</dt><dd>High</dd>
+          <dt>Posts per stage week</dt><dd>40-70</dd>
+          <dt>Dead weeks per year</dt><dd>~14</dd>
+        </dl>
+        <p>Indonesian-language VCT watch time grew in 2026 even as global average viewers fell 17%, which is the pocket you want. But you are up against staffed operations: ONE Esports Indonesia, GGWP.ID (owned by IDN Media), Revival TV, and Riot's own regional channels. Beat them on completeness, not scoops.</p>
+      </div>
+      <div class="vert">
+        <h3>Film &amp; TV</h3>
+        <div class="verdict">The stabiliser / lowest ceiling</div>
+        <dl>
+          <dt>Structured-data share</dt><dd>~40%</dd>
+          <dt>Indonesian competition</dt><dd>Very high</dd>
+          <dt>Posts per week</dt><dd>50-60, flat</dd>
+          <dt>Dead weeks per year</dt><dd>0</dd>
+        </dl>
+        <p>TMDB gives you dates, casts, trailers and poster art with clear licence terms, which solves the image-rights problem that plagues the other two. But most genuinely interesting film news is prose from Deadline and Variety, so the automation ratio is the worst of the three. Its real value is that it never goes quiet.</p>
+      </div>
+    </div>
+
+    <h3>The three calendars complement each other, which is the actual portfolio argument</h3>
+    <p class="spine">Run one vertical and you get a feed that goes dark for two weeks at a time. Run all three and the quiet periods cancel out. This is a reason to build all three, and also a reason to build them one at a time.</p>
+
+    <div class="cal">
+      <div class="calgrid">
+        <div></div>
+        <div class="hd">Mon</div><div class="hd">Tue</div><div class="hd">Wed</div><div class="hd">Thu</div><div class="hd">Fri</div><div class="hd">Sat</div><div class="hd">Sun</div>
+        <div class="rl">F1 race week</div>
+        <div class="cell">low</div><div class="cell">low</div><div class="cell mid">prev</div><div class="cell mid">prev</div><div class="cell hi">FP</div><div class="cell hi">Q</div><div class="cell hi">race</div>
+        <div class="rl">VCT stage week</div>
+        <div class="cell">low</div><div class="cell hi">match</div><div class="cell hi">match</div><div class="cell mid">match</div><div class="cell hi">match</div><div class="cell hi">match</div><div class="cell hi">match</div>
+        <div class="rl">Film &amp; TV</div>
+        <div class="cell mid">news</div><div class="cell mid">news</div><div class="cell mid">news</div><div class="cell mid">news</div><div class="cell hi">rel</div><div class="cell mid">news</div><div class="cell hi">box</div>
+      </div>
+    </div>
+    <p class="spine" style="font-size:13.5px;color:var(--text-3)">Typical week within each vertical's active season. F1 peaks Friday to Sunday, VCT fills the midweek, Film and TV holds the floor every day and owns Monday morning with weekend box office.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow sand">Part one / market</div>
+    <h2>The wedge: be complete, not first</h2>
+    <div class="spine">
+      <p class="lede">You will not out-scoop people with sources inside teams and studios. Do not build the brand on that. Build it on the thing a staffed newsroom structurally cannot do, which is cover <b>everything</b>, <b>immediately</b>, <b>every time</b>.</p>
+      <p>A human running an esports account makes a graphic for the matches that matter. An automated one makes a graphic for every match in the stage, including the 3am tier-two fixture that nobody covered, and it posts thirty seconds after the series ends rather than the next morning. Same logic in F1: everybody posts the race result, far fewer post an FP2 classification, a stewards' penalty document, or a tyre-strategy summary within a minute of it existing.</p>
+      <p>Completeness compounds in a way scoops do not. If you are the only account that reliably has the graphic for <em>every</em> event, you become the account people check rather than the account people stumble on, and that is a following you keep through a quiet season.</p>
+    </div>
+
+    <div class="alerts">
+      <div class="alert good">
+        <div class="bar2"></div>
+        <div class="body">
+          <h3>Three concrete commitments that define the brand</h3>
+          <p><b>Every match, not the big ones.</b> Every series in every VCT stage gets a result graphic, including Ascension and Challengers when the data is available.</p>
+          <p><b>Every session, not just the race.</b> FP1, FP2, FP3, qualifying, sprint, race, plus every FIA decision document that lands.</p>
+          <p><b>Under sixty seconds, or it does not go out.</b> A result graphic posted two hours late is somebody else's post. Latency is the product, so treat a slow post as a failed post and alert on it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow sand">Part one / market</div>
+    <h2>Money, honestly</h2>
+    <div class="spine">
+      <p class="lede">Platform payouts will not pay for this in year one, and it would be dishonest to plan as if they will. The good news is that the costs are small enough that they do not need to.</p>
+    </div>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Route</th><th>Gate</th><th>Realistic timeline</th><th>Assessment</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>X ad revenue share</b></td>
+            <td class="mono">500 verified followers<br>5M impressions / 90d<br>X Premium, $8/mo</td>
+            <td>12 to 18 months per account</td>
+            <td>Reachable but slow, and Indonesian impressions monetise at low rates. Treat the Premium fee as a cost, not an investment.</td>
+          </tr>
+          <tr>
+            <td><b>Instagram</b></td>
+            <td class="mono">No direct payout<br>program in Indonesia</td>
+            <td>n/a</td>
+            <td>Value is audience, not payout. This is where brand deals get negotiated, so it is where the asset accrues.</td>
+          </tr>
+          <tr>
+            <td><b>Sponsorship</b></td>
+            <td class="mono">~50k engaged followers<br>in one vertical</td>
+            <td>9 to 18 months</td>
+            <td>The realistic first revenue. Peripherals, energy drinks, streaming services. Avoid betting sponsors: the compliance and reputational exposure is not worth it on a news account.</td>
+          </tr>
+          <tr>
+            <td><b>Affiliate</b></td>
+            <td class="mono">None</td>
+            <td>Immediate, tiny</td>
+            <td>Works for Film and TV (streaming and ticketing) far better than for the sports feeds. Marginal either way.</td>
+          </tr>
+        </tbody>
+        <caption>Costs to run: roughly $11/month in X API credits at eight posts a day across three accounts, $0 for Meta APIs, $0 for Gemini on the free tier, $0 to $5 for object storage. Three accounts for the price of a coffee is why this is worth trying even if it never earns.</caption>
+      </table>
+    </div>
+    <p class="spine">Plan it as an asset build rather than a revenue project. The output of year one is three audiences and a pipeline that can spin up a fourth vertical in a weekend. That optionality is worth more than the ad share.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Part two / what changed under you</div>
+    <h2>Two corrections before anyone writes code</h2>
+    <div class="alerts">
+      <div class="alert">
+        <div class="bar2"></div>
+        <div class="body">
+          <h3>The X free tier no longer exists</h3>
+          <p>X retired its fixed Free, Basic and Pro tiers for new developers on 6 February 2026 and moved to pay-per-use credits. Posting is now priced per call, and it is cheap: <b>$0.015 per plain post</b>. The trap is that <b>a post containing a URL costs $0.20</b>, roughly thirteen times more.</p>
+          <p>Three accounts at eight posts a day, no links in the post body, is about <b>$11 a month</b> for an official, ban-safe write path. <b>Decision taken: browser automation for now</b>, with the API as the upgrade once an account earns. That is why the publisher is its own layer, and why the captions should carry no URLs from day one, so the switch costs nothing later. See the build spec for the risk profile that choice creates.</p>
+        </div>
+      </div>
+      <div class="alert warm">
+        <div class="bar2"></div>
+        <div class="body">
+          <h3>YouTube community Posts have no API, and TikTok has an audit</h3>
+          <p>There is no public endpoint for creating a YouTube community post, and there never has been. Every tool that claims otherwise is scraping or driving a browser. Drop it.</p>
+          <p>Its replacement at launch is <b>Threads</b>: free, 250 posts a day, and it rides the same Meta app and review you are already doing for Instagram, so it costs almost nothing extra. <b>TikTok</b> is the bigger prize but its Content Posting API restricts unaudited apps to private-only posts and supports photos by URL pull only, so it needs its own audit and belongs in phase five.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Part two / architecture</div>
+    <h2>Facts come from machines. Words come from the model.</h2>
+    <div class="spine">
+      <p class="lede">"One hundred percent verified" and "as fast as possible" fight each other the moment a language model is allowed to decide what is true. So it never is.</p>
+      <p>A match score, a race classification, a penalty, a release date, a box office number: all of these arrive as structured data. For that class of post nothing is generated. Data lands in typed fields, fields fill a caption template, the template fills a design template, and it publishes. No model in the hot path means no hallucination risk and no inference latency, which is also how you get a sub-minute post.</p>
+      <p>Gemini does three jobs, none of which is being a source of fact. It classifies incoming items. It extracts a structured claim from prose, and must quote the exact sentence supporting every number it extracts. And it writes caption copy from fields that are already confirmed. If it cannot point at a supporting sentence, the item goes to review rather than out the door.</p>
+    </div>
+
+    <div class="pipe" aria-label="Pipeline stages with latency targets">
+      <div class="stage"><div class="n">00</div><div><div class="t">Poll</div><div class="d">Per-source cadence. 15s inside live windows, 120s otherwise, 600s overnight.</div></div><div class="ms">0s</div></div>
+      <div class="stage"><div class="n">01</div><div><div class="t">Normalise and dedupe</div><div class="d">Hash on entity plus event plus value. Kills the same result arriving from four sources.</div></div><div class="ms">+0.1s</div></div>
+      <div class="stage"><div class="n">02</div><div><div class="t">Extract claim</div><div class="d">Structured rows pass straight through. Prose goes to Flash-Lite with a quote requirement.</div></div><div class="ms">+0.2s / +2s</div></div>
+      <div class="stage gate"><div class="n">03</div><div><div class="t">Verification gate</div><div class="d">Deterministic rules only. Outcome is auto, review, or drop. Never a model's opinion.</div></div><div class="ms">+0.05s</div></div>
+      <div class="stage"><div class="n">04</div><div><div class="t">Compose</div><div class="d">Pick archetype, layout, skin, accents. Fill caption template, or call Flash for flavour copy.</div></div><div class="ms">+0.1s / +3s</div></div>
+      <div class="stage"><div class="n">05</div><div><div class="t">Render</div><div class="d">Headless Chromium screenshots the HTML template. Warm browser pool, no cold start.</div></div><div class="ms">+1.5s</div></div>
+      <div class="stage"><div class="n">06</div><div><div class="t">Publish</div><div class="d">Platform adapters in parallel. Instagram needs the JPEG on a public URL first.</div></div><div class="ms">+3s</div></div>
+      <div class="pipe-foot">
+        <span>Structured path, zero model calls</span>
+        <span class="tnum" style="color:var(--go)">target 5s to 8s end to end</span>
+      </div>
+    </div>
+    <p class="spine" style="font-size:14.5px;color:var(--text-2)">The prose path adds one Gemini round trip and lands around 12s to 15s, which still beats any human. The review path is bounded by you, not by the machine.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Part two / sources</div>
+    <h2>Three tiers of trust, and Reddit is not one of them</h2>
+    <div class="spine">
+      <p class="lede">Reddit is a good instinct used slightly wrong. It is not a source, it is a <b>speed signal</b>: the fastest public notice that something happened, plus a link to the primary source in the comments. Use it to learn early, then verify against the thing it linked to. Never cite it as the authority.</p>
+    </div>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Tier</th><th>What it is</th><th>Sources by vertical</th><th>Can it publish alone</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>A</b><br><span style="color:var(--text-3);font-size:13px">Structured truth</span></td>
+            <td>Machine-readable, official or near-official. Facts, not reports.</td>
+            <td><b>F1:</b> OpenF1 for live timing and session results, Jolpica-F1 for classifications and standings, FIA decision documents.<br><b>VCT:</b> Riot esports service endpoints plus a self-hosted VLR.gg parser for schedule, results and map scores.<br><b>Film &amp; TV:</b> TMDB for dates, cast, trailers and posters; studio channel RSS for trailer drops; box office aggregators.</td>
+            <td><span class="pill go">Yes, automatically</span></td>
+          </tr>
+          <tr>
+            <td><b>B</b><br><span style="color:var(--text-3);font-size:13px">Allowlisted prose</span></td>
+            <td>Named outlets with editorial accountability. Mostly free via RSS, no API key needed.</td>
+            <td><b>F1:</b> formula1.com, fia.com, team press rooms, Autosport, Motorsport.com, RaceFans.<br><b>VCT:</b> valorantesports.com, Riot newsroom, org announcements, Sheep Esports, Dot Esports.<br><b>Film &amp; TV:</b> Deadline, Variety, The Hollywood Reporter, studio press sites.</td>
+            <td><span class="pill go">Yes, with a quote</span></td>
+          </tr>
+          <tr>
+            <td><b>C</b><br><span style="color:var(--text-3);font-size:13px">Signals</span></td>
+            <td>Tells you to go look. Reddit's free API allows about 100 queries a minute with OAuth, far more than four subreddits need.</td>
+            <td>r/VALORANTCompetitive, r/formula1, r/movies, r/television sorted by new and rising. Aggregators, leak accounts, unverified claims.</td>
+            <td><span class="pill stop">Never</span></td>
+          </tr>
+        </tbody>
+        <caption>A tier C item can only become a post by promoting the primary source it points at. That promotion is what the gate below evaluates.</caption>
+      </table>
+    </div>
+
+    <h3>The verification gate</h3>
+    <p class="spine">Five rules, evaluated in order, no model involved. The first match decides.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Rule</th><th>Condition</th><th>Outcome</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">R0</td><td>Hard block: contested result, on-track injury, death, legal matter, anything involving a minor</td><td><span class="pill stop">Drop</span></td><td>Categories where being fast and wrong does real damage. Checked first, never automated.</td></tr>
+          <tr><td class="mono">R1</td><td>Claim came from a tier A endpoint and every required field is populated</td><td><span class="pill go">Auto</span></td><td>It is data, not a report. Nobody is interpreting anything.</td></tr>
+          <tr><td class="mono">R2</td><td>Primary source is on the tier B allowlist and the extractor quoted a supporting sentence for every number</td><td><span class="pill go">Auto</span></td><td>Named outlet plus traceable quote. This is the check a human editor would run.</td></tr>
+          <tr><td class="mono">R3</td><td>Two or more independent tier B domains report the same entity plus event within 45 minutes</td><td><span class="pill go">Auto</span></td><td>Corroboration substitutes for a single trusted domain.</td></tr>
+          <tr><td class="mono">R4</td><td>Everything else, including all tier C items and anything tagged report, rumour, exclusive, or "understood to"</td><td><span class="pill hold">Review</span></td><td>You decide in Discord. This is the human in the loop.</td></tr>
+        </tbody>
+        <caption>Keep R0's blocklist short and in config, not code. You will edit it after the first incident, and you want that edit to be a one-line change.</caption>
+      </table>
+    </div>
+    <p class="spine">Two details that matter more than they look. <b>Dedupe before extraction</b>, not after, or one race result costs four Gemini calls. And <b>review items expire</b>: an unapproved breaking item is worthless after 90 minutes, so it auto-rejects with a note instead of sitting in the queue making it look busy.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Part two / design</div>
+    <h2>Five layers, three thousand compositions, twenty-eight files</h2>
+    <div class="spine">
+      <p class="lede">You do not want a generative designer and you are right not to. What kills monotony is not novelty per post, it is <b>constrained combinatorics</b>: a small set of hand-designed parts recombined under rules, with the brand-defining layer held completely still.</p>
+      <p>The renderer is headless Chromium driven by Playwright, screenshotting HTML and CSS. Not a canvas library, not an image model. You get real grid, real web fonts, real blend modes, git history on every template, and a browser to design in. Same input always produces the same pixels, so a bug is reproducible.</p>
+    </div>
+
+    <div class="stack" aria-label="Five layer design system">
+      <div class="layer fixed"><div class="lv">L1</div><div><div class="nm">Design tokens</div><div class="ds"><b>Never varies.</b> Type scale, grid unit, radius, stroke weights, shadow and glow recipes, safe margins, logo lockup placement. This is the design language. One file per brand, and you change it roughly never.</div></div></div>
+      <div class="layer varies"><div class="lv">L2</div><div><div class="nm">Content archetypes</div><div class="ds"><b>Chosen by the data, not by taste.</b> Seven per brand. For VCT: match result, map breakdown, player stat line, roster move, bracket state, schedule strip, quote card. The claim type selects this.</div></div></div>
+      <div class="layer varies"><div class="lv">L3</div><div><div class="nm">Layout variants</div><div class="ds"><b>Four per archetype.</b> Hero left or hero right, full bleed or framed, split or stacked, big-number led or portrait led. Same tokens, same information, different composition. Twenty-eight hand-built layouts per brand.</div></div></div>
+      <div class="layer varies"><div class="lv">L4</div><div><div class="nm">Skins</div><div class="ds"><b>Five palette moods, plus entity colour injection.</b> Dark, light, team-coloured, tournament-coloured, archival. The entity table is where the real variety lives: a McLaren post is papaya, a Ferrari post is red, and both are unmistakably yours because the framing never moved.</div></div></div>
+      <div class="layer varies"><div class="lv">L5</div><div><div class="nm">Accent modules</div><div class="ds"><b>Zero to two of six, stochastic.</b> Diagonal cut, halftone field, film grain, ticker strip, oversized watermark, crop-mark corners. Each carries its own probability and compatibility rules, so grain never lands on halftone.</div></div></div>
+    </div>
+
+    <div class="mathline">
+      <span class="eq">28 layouts</span><span>&times;</span><span class="eq">5 skins</span><span>&times;</span><span class="eq">22 accent sets</span><span>=</span><span class="res">3,080</span><span>distinct compositions per brand, from 28 files you actually design</span>
+    </div>
+
+    <h3>Colour injection is the cheapest variety you will ever buy</h3>
+    <p class="spine">Entity colours live in a data table, not in CSS. One row per team, constructor, org or studio, with a contrast-checked text pairing stored alongside each hex so light-on-cyan never happens. Adding the current grid is a data edit, not a design task.</p>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#FF8000"></div><div class="lab"><div class="team">McLaren</div><div class="hex">#FF8000</div></div></div>
+      <div class="sw"><div class="chip" style="background:#E8002D"></div><div class="lab"><div class="team">Ferrari</div><div class="hex">#E8002D</div></div></div>
+      <div class="sw"><div class="chip" style="background:#27F4D2"></div><div class="lab"><div class="team">Mercedes</div><div class="hex">#27F4D2</div></div></div>
+      <div class="sw"><div class="chip" style="background:#3671C6"></div><div class="lab"><div class="team">Red Bull</div><div class="hex">#3671C6</div></div></div>
+      <div class="sw"><div class="chip" style="background:#229971"></div><div class="lab"><div class="team">Aston Martin</div><div class="hex">#229971</div></div></div>
+      <div class="sw"><div class="chip" style="background:#64C4FF"></div><div class="lab"><div class="team">Williams</div><div class="hex">#64C4FF</div></div></div>
+    </div>
+    <p class="spine" style="font-size:13.5px;color:var(--text-3)">Sample rows. The same table shape holds VCT org colours and studio colours, and should be checked against the current season rather than copied from here.</p>
+
+    <h3>Anti-repetition is a shuffle bag, not a random number</h3>
+    <p class="spine">Random selection produces visible clumps. Instead keep the last twelve published compositions per account and score every candidate: heavy penalty for a layout used in the last four posts, medium for a skin used in the last three, light for repeating an accent set. Pick the highest scorer. Consecutive posts then never look alike, and the nine most recent tiles on a profile grid read as a set rather than nine variations of one tile.</p>
+
+    <h3>The contact sheet is how you QA a design system</h3>
+    <p class="spine">One script renders sixty sample posts from real historical data into a single scrollable grid. That page is where you judge coherence and variety, and it is the only honest way to catch "all twenty-eight layouts look the same" before you have posted twenty-eight times. Run it every time you touch L1.</p>
+
+    <h3>Carousels are a sequence grammar, not a template type</h3>
+    <p class="spine">Do not build carousel templates. Build an ordering rule: cover, then two to six body slides drawn from the existing single-post archetypes at a fixed slide skin, then an outro. A match recap is cover plus one map-breakdown slide per map plus a standings slide. The parts already exist, so a carousel costs you logic and nothing else. Instagram accepts two to ten items and crops every slide to the first slide's aspect ratio, so lock the whole set to 4:5 at the grammar level.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Part two / publishing</div>
+    <h2>What each platform actually allows</h2>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Platform</th><th>Path</th><th class="mono">Cost</th><th class="mono">Cap</th><th>Setup</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>X</b></td><td>Official API, pay-per-use credits</td>
+            <td class="mono">$0.015 / post<br><span style="color:var(--stop)">$0.20 with a URL</span></td>
+            <td class="mono">Billing, not quota</td>
+            <td>Hours. Create the app, buy credits, set a hard spend cap.</td>
+          </tr>
+          <tr>
+            <td><b>Instagram</b></td><td>Graph API, container then publish</td>
+            <td class="mono">Free</td>
+            <td class="mono">100 posts / 24h<br>carousel counts as 1</td>
+            <td><span class="pill stop">Long pole</span> Business account, linked Facebook Page, Meta app, and 2 to 4 weeks of app review for content publishing. Submit on day one.</td>
+          </tr>
+          <tr>
+            <td><b>Threads</b></td><td>Official Threads API</td>
+            <td class="mono">Free</td>
+            <td class="mono">250 posts / 24h</td>
+            <td>Low, and it rides the Meta app you already built for Instagram.</td>
+          </tr>
+          <tr>
+            <td><b>TikTok</b></td><td>Content Posting API, photo by URL pull</td>
+            <td class="mono">Free</td>
+            <td class="mono">~15 posts / day<br>private-only until audited</td>
+            <td><span class="pill hold">Phase 5</span> Needs URL verification, a demo video, and an audit with no published turnaround.</td>
+          </tr>
+          <tr>
+            <td><b>YouTube</b></td><td>No community-post API exists</td>
+            <td class="mono">n/a</td>
+            <td class="mono">n/a</td>
+            <td><span class="pill stop">Dropped</span> Revisit as Shorts only if you add video.</td>
+          </tr>
+        </tbody>
+        <caption>This table is the official-API path, which remains the upgrade target. The build taken is browser automation on all four platforms, which removes every cost, cap and review listed here and replaces them with account-suspension risk plus a warm-up schedule. The build spec covers that path.</caption>
+      </table>
+    </div>
+
+    <h3>Two constraints that shape the code</h3>
+    <p class="spine"><b>Instagram will not accept image bytes.</b> It fetches a publicly reachable JPEG URL. So the renderer writes to object storage on a short-lived public path, Cloudflare R2's free tier being the obvious choice, and the publisher passes that URL. Do not tunnel this from your PC: if the PC hiccups mid-publish, the container fails and the post is lost.</p>
+    <p class="spine"><b>Links cost thirteen times more on X.</b> Design captions to carry no URL. Plain-text attribution ("via Deadline") costs nothing and is usually enough. If you do want a link, put it in a reply and know that you are choosing to spend $0.20 on it.</p>
+    <p class="spine">Keep browser automation in the toolbox but out of the critical path. It has two honest uses here: covering Instagram during the weeks you are waiting on app review, and anything that truly has no API. Run it from a persistent Playwright profile on your home PC, which is the safest available setup because it is a real residential IP and a real browser fingerprint, and pace it like a human.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Part two / runtime</div>
+    <h2>What runs on the PC</h2>
+    <div class="spine">
+      <p>Seven small services, one queue, one database. Docker Compose with restart-always, and a watchdog that pings Discord if a container has been down two minutes. Postgres holds items, claims, decisions, published posts and the composition history the shuffle bag reads. Use Postgres as the queue too, via pg-boss or graphile-worker, and skip Redis until you can prove you need it.</p>
+      <p><code>poller</code> &middot; <code>extractor</code> &middot; <code>gate</code> &middot; <code>composer</code> &middot; <code>renderer</code> &middot; <code>reviewer</code> &middot; <code>publisher</code>. Each does one job and hands the item on, so a failure is always attributable to a stage and a retry never re-runs work you already paid for.</p>
+    </div>
+
+    <h3>The Gemini router</h3>
+    <p class="spine">Free-tier limits differ per model and apply per project rather than per key, so a "key manager" is the wrong mental model. What you need is a <b>model router with a token bucket per model</b>, persisted so a restart does not reset the daily count, and a fallback ladder so a saturated model degrades instead of failing.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Model</th><th class="mono">RPM</th><th class="mono">RPD</th><th>Job here</th><th>On exhaustion</th></tr></thead>
+        <tbody>
+          <tr><td><b>Flash-Lite</b></td><td class="mono">30</td><td class="mono">1,500</td><td>Classification, dedupe adjudication, claim extraction. Highest volume, lowest stakes.</td><td>Fall to Flash</td></tr>
+          <tr><td><b>Flash</b></td><td class="mono">15</td><td class="mono">1,500</td><td>Indonesian caption copy, carousel slide copy, headline compression to fit the template.</td><td>Fall to template-only copy</td></tr>
+          <tr><td><b>Pro</b></td><td class="mono">5</td><td class="mono">50</td><td>Reserved. Ambiguous claims heading to review, where a better summary saves you reading time. About 30 calls a day at most.</td><td>Send to review unsummarised</td></tr>
+        </tbody>
+        <caption>Free-tier figures as published for 2026, subject to change. Read your live numbers in AI Studio and load them from config, never as constants.</caption>
+      </table>
+    </div>
+    <p class="spine">Three things keep you comfortably inside those limits. Structured tier A posts call no model at all, and that is most of your volume during race weekends and stage weeks. Caption copy is cached by claim hash, so a retry or a design reshuffle costs nothing. And prompts stay small because you send extracted fields, never whole articles, which also keeps you far from the token-per-minute ceiling.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Part two / human in the loop</div>
+    <h2>The Discord review loop</h2>
+    <div class="spine">
+      <p>One private server. A <code>#review</code> channel per account, <code>#published</code> for after-the-fact spot checks, <code>#alerts</code> for failures. Every message is one embed with the rendered image attached, so you judge design and copy in the same glance on a phone.</p>
+      <p>The decision that matters: <b>approving must be one tap</b>. Every extra interaction is latency on breaking news, and latency is the product. Editing and reshuffling exist for the cases where one tap is not enough, not as the normal path.</p>
+    </div>
+
+    <div class="mock" role="img" aria-label="Mock of a Discord review card">
+      <div class="top">
+        <div class="who">Review queue &middot; f1 &middot; expires in 82 min</div>
+        <div class="title">Rumour: driver contract talks reported</div>
+        <dl class="kv">
+          <dt>Rule</dt><dd>R4, single tier C source, tagged "understood to"</dd>
+          <dt>Signal</dt><dd>r/formula1, 340 upvotes in 8 minutes</dd>
+          <dt>Primary</dt><dd>One tier B outlet, no corroboration yet</dd>
+          <dt>Quote</dt><dd>Extractor found support for 0 of 2 numbers</dd>
+        </dl>
+      </div>
+      <div class="prev">RENDERED 4:5 PREVIEW</div>
+      <div class="btns">
+        <span class="btn primary">Publish</span>
+        <span class="btn">Edit caption</span>
+        <span class="btn">Reshuffle design</span>
+        <span class="btn">Hold for second source</span>
+        <span class="btn">Reject</span>
+      </div>
+    </div>
+    <p class="spine" style="font-size:14.5px;color:var(--text-2)">"Hold for second source" is the button that earns its place: it parks the item and publishes the instant rule R3 is satisfied by a second outlet, which is exactly the judgement a human is good at and a rule engine is not. Add a <code>/retract</code> command on day one, before you need it.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Part two / risk</div>
+    <h2>What will actually go wrong</h2>
+    <div class="risks">
+      <div class="risk">
+        <div class="lv"><span class="pill stop">Highest</span></div>
+        <div class="tx"><b>Image rights.</b> Driver and player photography, team logos, film stills and posters all belong to somebody, and F1 in particular polices its imagery aggressively. TMDB gives you poster art under clear terms, which covers Film and TV. For F1 and VCT, a <b>typography-led design language</b> using team colours, silhouettes and abstract treatment is both the safer path and the more distinctive one. Reposting press photos is the fastest route to a strike.</div>
+      </div>
+      <div class="risk">
+        <div class="lv"><span class="pill stop">High</span></div>
+        <div class="tx"><b>Instagram app review is a four-week wall.</b> Nothing reaches your biggest audience until it clears, and the review wants a screencast of a working use case. Submit in week one with a deliberately boring demo, then keep building. Plan for at least one rejection and resubmission.</div>
+      </div>
+      <div class="risk">
+        <div class="lv"><span class="pill hold">Medium</span></div>
+        <div class="tx"><b>Speed is not a winnable race against insiders.</b> Build on completeness, per the wedge above, and treat rumour coverage as a bonus rather than the strategy. If you find yourself optimising for scoops you have drifted into a fight you cannot win.</div>
+      </div>
+      <div class="risk">
+        <div class="lv"><span class="pill hold">Medium</span></div>
+        <div class="tx"><b>Nine feeds is too many to launch.</b> Three accounts across three platforms is nine surfaces to debug at once. Prove the loop on one account and one platform. The second and third should then be configuration, not engineering, which is the entire point of the layering.</div>
+      </div>
+      <div class="risk">
+        <div class="lv"><span class="pill sig">Manageable</span></div>
+        <div class="tx"><b>Scrapers break.</b> Anything reading VLR.gg is a scraper and will break when the markup changes. Self-host it rather than depending on somebody's public instance, pin the parser, and make a parse failure page you in <code>#alerts</code> rather than silently produce empty posts.</div>
+      </div>
+      <div class="risk">
+        <div class="lv"><span class="pill sig">Manageable</span></div>
+        <div class="tx"><b>The PC is a single point of failure.</b> Almost always on is not always on. Accept it: queue everything durably in Postgres so a reboot resumes rather than loses, and let the watchdog tell you when a race weekend started without you.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Part three / plan</div>
+    <h2>Build order</h2>
+    <div class="spine">
+      <p class="lede">F1 first, because it has the best free data, the least Indonesian-language competition and the clearest structured-event calendar. X first among platforms, because it is the most forgiving automation target. Each phase ends with something observable.</p>
+      <p style="font-size:14.5px;color:var(--text-2)"><span class="pill sand">Superseded</span> The phases below assumed the official-API path. The live plan, with the Windows runtime split, the dashboard and template lab, the edge-case fixture library and the account warm-up schedule, is in the <b>Newsroom Build Spec</b>. Keep this section only as the shape of the argument.</p>
+    </div>
+    <div class="phases">
+      <div class="phase">
+        <div class="tag">PHASE 0<em>week 1</em></div>
+        <div>
+          <h3>Accounts, keys, and the long pole</h3>
+          <p>Create the three accounts with handles and bios. Set up the Meta app, Business account and Facebook Page, and submit Instagram content-publishing for review immediately. Buy X credits and set a hard spend cap. Spike every data source with a throwaway script just to confirm it returns what you expect.</p>
+          <div class="done"><b>Done when</b> Instagram review is submitted and every source has returned real current-season data at least once.</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="tag">PHASE 1<em>weeks 1-2</em></div>
+        <div>
+          <h3>Ingest and gate, publishing nothing</h3>
+          <p>Poller, dedupe, extractor, and the five gate rules. Everything routes to a Discord firehose channel labelled with the rule that fired. No templates, no posting, just a running commentary of what the system would have said.</p>
+          <div class="done"><b>Done when</b> you have watched the firehose through a full race weekend and a full VCT match day and you agree with the gate on nearly every call.</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="tag">PHASE 2<em>weeks 2-3</em></div>
+        <div>
+          <h3>The design system, F1 brand only</h3>
+          <p>Tokens, seven archetypes, four layouts each, five skins, six accent modules, the entity colour table, the shuffle bag, and the contact sheet. Judge it on the contact sheet, never on single renders.</p>
+          <div class="done"><b>Done when</b> sixty renders from real historical data read as one brand and no two adjacent tiles look alike.</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="tag">PHASE 3<em>week 3</em></div>
+        <div>
+          <h3>First real posts: F1 on X, R1 only</h3>
+          <p>X publisher, auto-posting rule R1 only, everything else to review. First public contact. Watch the latency numbers and the spend against your estimate.</p>
+          <div class="done"><b>Done when</b> a session classification is live within sixty seconds and the month's X spend matches the forecast.</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="tag">PHASE 4<em>weeks 4-5</em></div>
+        <div>
+          <h3>Copy, review UX, rules R2 and R3</h3>
+          <p>Gemini router and Indonesian caption copy. Full Discord card with buttons, edit modal, reshuffle, hold-for-second-source, and <code>/retract</code>. Enable R2 and R3 once you trust the quote requirement.</p>
+          <div class="done"><b>Done when</b> you can approve a breaking item from your phone in under fifteen seconds.</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="tag">PHASE 5<em>weeks 5-8</em></div>
+        <div>
+          <h3>Instagram, Threads, carousels, then clone</h3>
+          <p>Instagram and Threads adapters the moment review clears, plus the carousel sequence grammar. Then VCT and Film and TV as configuration with their own token files and archetype sets. Start the TikTok audit here.</p>
+          <div class="done"><b>Done when</b> brand three ships without touching any service code. If it cannot, the layering was wrong and it is worth fixing now.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Part three / plan</div>
+    <h2>Open questions</h2>
+    <div class="qbox">
+      <h3>Answer these and the build order becomes a task list</h3>
+      <ol>
+        <li><b>X API:</b> accept roughly $11 a month for the official write path, or insist on browser automation for X as well?</li>
+        <li><b>The PC:</b> Windows, macOS or Linux, and is Docker already installed? Playwright and the Chromium render pool behave differently on each.</li>
+        <li><b>Language:</b> TypeScript end to end, with Playwright and the templates in one language, or Python for the pipeline with a small Node renderer beside it?</li>
+        <li><b>Accounts:</b> do the three handles exist yet, and is the Instagram one already a Business or Creator account linked to a Facebook Page?</li>
+        <li><b>Volume:</b> target posts per day per account, since it sets both the X bill and how aggressive the anti-repetition scoring needs to be.</li>
+        <li><b>Order:</b> F1 first as recommended above, or VCT first because it is the interest you care most about?</li>
+        <li><b>Visual direction:</b> should the F1 brand's tokens be drawn up as a design proposal before any pipeline work, so phase 2 has something to implement rather than invent?</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="srcs">
+    <h3>Sources</h3>
+    <p>Market data from DataReportal Digital 2026 Indonesia and APJII's internet penetration survey. Esports viewership from Esports Charts VCT 2026 reporting. F1 fanbase figure from 2026 Nielsen-based reporting. Platform limits and pricing from X developer pricing documentation, Meta's Instagram and Threads API documentation, TikTok for Developers Content Posting API, Reddit Data API terms, and Google AI Studio published rate limits, all as of September 2026.</p>
+    <p>Every figure in this document should be re-checked in the relevant developer console before it becomes a line item in a budget. API prices and free-tier quotas have all moved at least once in the last twelve months.</p>
+  </div>
+
+</div>
+
+</body>
+</html>

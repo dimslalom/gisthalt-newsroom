@@ -1,0 +1,30 @@
+{
+  "describes": "A one-word headline. Under-fill breaks composition as badly as overflow, and nobody tests it.",
+  "imagePath": "images/normal.png",
+  "claim": {
+    "vertical": "f1",
+    "claimType": "session_result",
+    "entities": {
+      "driver": "Norris",
+      "team": "McLaren",
+      "session": "Balapan",
+      "meeting": "Spanyol GP"
+    },
+    "values": {
+      "position": 1,
+      "driver": "Norris",
+      "session": "Balapan",
+      "meeting": "Spanyol GP",
+      "duration": 5412.881
+    },
+    "supportingQuote": null,
+    "sourceTier": "A",
+    "sourceDomain": "api.openf1.org",
+    "observedAt": "2026-09-12T14:30:00.000Z",
+    "tags": [
+      "structured"
+    ],
+    "headline": "Norris",
+    "imageUrl": "images/normal.png"
+  }
+}
