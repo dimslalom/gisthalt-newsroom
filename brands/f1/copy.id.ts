@@ -21,7 +21,7 @@ export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
     const top = (m.rows ?? []).slice(0, 3)
       .map((r) => `${r.rank}. ${r.primary} ${r.value}${r.trailing && r.trailing !== DASH ? ` (${r.trailing})` : ''}`);
     return [
-      `${m.headline} — ${meetingId(c.entities.meeting)}`.trim(),
+      `${m.headline} di ${meetingId(c.entities.meeting)}`.trim(),
       top.join('\n'),
       'Rangkuman lengkap sudah aku susun di atas.',
       tags(c),
@@ -29,7 +29,7 @@ export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
   },
 
   standings: (m, c) => {
-    const top = (m.rows ?? []).slice(0, 3).map((r) => `${r.rank}. ${r.primary} — ${r.value} poin`);
+    const top = (m.rows ?? []).slice(0, 3).map((r) => `${r.rank}. ${r.primary}: ${r.value} poin`);
     return [
       m.headline,
       top.join('\n'),
@@ -49,7 +49,7 @@ export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
   driver_line: (m, c) =>
     [
       rumourPrefix(c),
-      `${m.headline} — ${m.subhead ?? ''}`.trim(),
+      (m.subhead ? `${m.headline}: ${m.subhead}` : m.headline).trim(),
       'Menurut kamu, seberapa besar dampaknya untuk skuad musim depan?',
       tags(c),
     ].filter(Boolean).join('\n\n'),
@@ -57,7 +57,7 @@ export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
   schedule: (m, c) =>
     [
       `Jadwal ${m.headline}`,
-      (m.rows ?? []).map((r) => `${r.primary} — ${r.value} ${r.trailing}`).join('\n'),
+      (m.rows ?? []).map((r) => `${r.primary}: ${r.value} ${r.trailing}`).join('\n'),
       'Jangan sampai ketinggalan sesi favoritmu.',
       tags(c),
     ].filter(Boolean).join('\n\n'),
@@ -66,7 +66,7 @@ export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
     [
       rumourPrefix(c),
       m.quote ?? '',
-      `${m.quote ? '— ' : ''}${m.headline}${m.attribution && m.attribution !== DASH ? `, ${m.attribution}` : ''}`,
+      `${m.quote ? '- ' : ''}${m.headline}${m.attribution && m.attribution !== DASH ? `, ${m.attribution}` : ''}`,
       tags(c),
     ].filter(Boolean).join('\n\n'),
 };

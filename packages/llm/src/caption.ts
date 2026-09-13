@@ -1,6 +1,7 @@
 import type { Claim } from '@newsroom/core';
 import { dedupeHash } from '@newsroom/core';
 import type { GeminiRouter } from './router.ts';
+import { ANTI_AI_STYLE_RULES, hasBannedDash } from './style-rules.ts';
 
 /**
  * Copy only. Every fact in the caption is already confirmed and present in
@@ -17,6 +18,8 @@ ATURAN KERAS:
 - Nada: ringkas, faktual, percaya diri. Bukan clickbait.
 - Platform: ${platform}.
 - Balas hanya dengan teks caption.
+
+${ANTI_AI_STYLE_RULES}
 ${voiceGuide ? `\nSUARA DAN GAYA BRAND (wajib diikuti):\n${voiceGuide}\n` : ''}
 FIELDS: ${JSON.stringify(fields)}
 
@@ -44,7 +47,7 @@ export async function writeCaption(
     // A caption that smuggled in a URL or overran the limit is discarded, not patched.
     const allowedNumbers = new Set((JSON.stringify(fields) + fallback).match(/\d+(?:[.:]\d+)*/g) ?? []);
     const supportedNumbers = (text.match(/\d+(?:[.:]\d+)*/g) ?? []).every(n=>allowedNumbers.has(n));
-    const clean = text && supportedNumbers && !/https?:\/\//i.test(text) && text.length <= maxChars;
+    const clean = text && supportedNumbers && !/https?:\/\//i.test(text) && text.length <= maxChars && !hasBannedDash(text);
     return {
       caption: clean ? text : fallback,
       model: res.model,

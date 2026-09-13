@@ -1,6 +1,7 @@
 import { numericValues, quoteSupports } from '@newsroom/core';
 import type { Claim, RawItem } from '@newsroom/core';
 import type { GeminiRouter } from './router.ts';
+import { ANTI_AI_STYLE_RULES, hasBannedDash } from './style-rules.ts';
 
 export interface ExtractedClaim {
   claimType: string;
@@ -29,6 +30,8 @@ Rules:
 - supportingQuote MUST be one sentence copied VERBATIM from the source text that contains EVERY numeric value you put in values. If no single sentence does, set supportingQuote to null.
 - tags may include: rumour, exclusive, report, official, confirmed.
 - headline is a short Indonesian headline, max 70 characters, containing no facts absent from values/entities.
+
+${ANTI_AI_STYLE_RULES}
 
 SOURCE (${item.sourceDomain}):
 TITLE: ${item.title}
@@ -81,6 +84,8 @@ export async function extractClaim(router: GeminiRouter, item: RawItem): Promise
   if (typeof e !== 'object' || !e.entities || !e.values || typeof e.entities !== 'object' || typeof e.values !== 'object' || Array.isArray(e.values) || Object.values(e.entities).some((v) => typeof v !== 'string') || (e.tags && (!Array.isArray(e.tags) || e.tags.some((v) => typeof v !== 'string')))) throw new Error('invalid extraction response shape');
   const quote = typeof e.supportingQuote === 'string' ? e.supportingQuote : null;
   const violation = validateQuote(quote, e.values ?? {}, `${item.title}\n${item.body}`);
+  // A headline that smuggled in a banned dash is discarded, not patched.
+  const headline = e.headline && !hasBannedDash(e.headline) ? e.headline : item.title;
 
   return {
     claim: {
@@ -93,7 +98,7 @@ export async function extractClaim(router: GeminiRouter, item: RawItem): Promise
       sourceDomain: item.sourceDomain,
       observedAt: item.observedAt,
       tags: e.tags ?? [],
-      headline: e.headline || item.title,
+      headline,
       imageUrl: item.imageUrl ?? null,
     },
     quoteViolation: violation,

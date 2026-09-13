@@ -130,7 +130,7 @@ function textHtml(node: TextNode, ctx: Ctx, parentAxis: 'vertical' | 'horizontal
     `line-height:${leadingFor(node)}`,
     `color:${resolveColour(node.colour ?? { ref: 'fg' }, ctx.paint)}`,
     `text-align:${node.align ?? 'left'}`,
-    node.transform === 'uppercase' ? 'text-transform:uppercase' : '',
+    node.transform === 'uppercase' ? 'text-transform:uppercase' : node.transform === 'lowercase' ? 'text-transform:lowercase' : '',
     `font-weight:${node.weight ?? 400}`,
     node.italic ? 'font-style:italic' : '',
     namedStep === 'lab' ? 'letter-spacing:var(--ls-lab)' : '',

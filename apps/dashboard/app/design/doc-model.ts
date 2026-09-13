@@ -57,7 +57,7 @@ export interface TextNode extends NodeBase {
   kind: 'text'; source: TextSource; font?: FontSpec; step?: FontStep;
   fit?: { minPx: number; maxPx: number; lines: number };
   colour?: Colour; align?: 'left' | 'center' | 'right';
-  transform?: 'none' | 'uppercase'; weight?: number; maxLines?: number;
+  transform?: 'none' | 'uppercase' | 'lowercase'; weight?: number; maxLines?: number;
 }
 export interface ImageNode extends NodeBase {
   kind: 'image'; source: { type: 'field'; field: 'imageUrl' };

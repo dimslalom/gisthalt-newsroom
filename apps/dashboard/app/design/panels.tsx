@@ -278,7 +278,7 @@ function TextProps({ node, fields, present, onChange }: {
       <div className="row">
         <ColourField label="Colour" value={node.colour ?? { ref: 'fg' }} onChange={(v) => { if (v !== 'none') onChange({ colour: v }); }} />
         <Field label="Align" flex><Select value={node.align ?? 'left'} options={['left', 'center', 'right']} onChange={(v) => onChange({ align: v as 'left' })} /></Field>
-        <Field label="Case" flex><Select value={node.transform ?? 'none'} options={['none', 'uppercase']} onChange={(v) => onChange({ transform: v as 'none' })} /></Field>
+        <Field label="Case" flex><Select value={node.transform ?? 'none'} options={['none', 'uppercase', 'lowercase']} onChange={(v) => onChange({ transform: v as 'none' })} /></Field>
       </div>
     </>
   );

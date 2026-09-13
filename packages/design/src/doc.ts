@@ -142,7 +142,7 @@ export interface TextNode extends NodeBase {
   fit?: { minPx: number; maxPx: number; lines: number };
   colour?: Colour;
   align?: TextAlign;
-  transform?: 'none' | 'uppercase';
+  transform?: 'none' | 'uppercase' | 'lowercase';
   weight?: number;
   /** Hard ceiling on rendered lines; overflow ellipsises rather than spills. */
   maxLines?: number;
@@ -382,7 +382,7 @@ export function sanitizeNode(input: unknown, ctx = { count: 0 }, depth = 0): Lay
         ...(step === 'fit' ? { fit } : {}),
         colour: sanitiseColour(n.colour),
         align: oneOf(n.align, ['left', 'center', 'right'] as const, 'left'),
-        transform: oneOf(n.transform, ['none', 'uppercase'] as const, 'none'),
+        transform: oneOf(n.transform, ['none', 'uppercase', 'lowercase'] as const, 'none'),
         weight: num(n.weight, 100, 900, 400),
         ...(typeof n.maxLines === 'number' ? { maxLines: num(n.maxLines, 1, 20, 3) } : {}),
         ...(typeof n.letterSpacing === 'string' ? { letterSpacing: n.letterSpacing.slice(0, 20) } : {}),

@@ -1,5 +1,6 @@
 import { getCatalog, rendererFetch, rendererImage, type Catalog } from '../../lib/renderer.ts';
 import { DesignStudio } from './studio.tsx';
+import { ReferencePreview } from './reference-preview.tsx';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,32 +50,9 @@ export default async function DesignPage({ searchParams }: { searchParams: Promi
             Edit reusable layouts, arrange layers, and link text to claim data. Preview changes before saving.
           </p>
         </div>
-        {reference && <ReferencePreview reference={reference} />}
+        {reference && <ReferencePreview reference={reference} imageSrc={rendererImage(reference.url)} />}
       </div>
       <DesignStudio key={brand} catalog={catalog} />
     </>
-  );
-}
-
-/** A small, non-interactive reference card: a real layout drawn with a real
- *  claim's headline, eyebrow and photo — for scale and content-density
- *  reference only. Not editable here; open the studio below to design. */
-function ReferencePreview({ reference }: { reference: ReferenceRender }) {
-  const displayW = 150;
-  const displayH = Math.round((reference.height / reference.width) * displayW);
-  return (
-    <div className="card" style={{ display: 'grid', gap: 6, justifyItems: 'center', padding: 10, flex: '0 0 auto' }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={rendererImage(reference.url)}
-        alt={`Reference render of ${reference.archetype}/${reference.layout} with sample content`}
-        width={displayW}
-        height={displayH}
-        style={{ display: 'block', width: displayW, height: displayH, borderRadius: 4, border: '1px solid var(--line)' }}
-      />
-      <span style={{ fontSize: 10, color: 'var(--muted)', textAlign: 'center', maxWidth: displayW }}>
-        Reference: real content in {reference.archetype}/{reference.layout}
-      </span>
-    </div>
   );
 }
