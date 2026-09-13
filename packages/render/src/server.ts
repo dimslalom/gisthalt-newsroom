@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
+import { spawn } from 'node:child_process';
 import {
   clearLayoutOverride, compose, composeCarousel, enumerateVariants, getLayoutOverride, saveLayoutOverride,
   getLayoutDoc, saveLayoutDoc, deleteLayoutDoc, seedDoc, presentFields, FIELDS, CANVASES, CANVAS_KEYS,
@@ -17,6 +18,44 @@ import { pinUploadedFont } from './custom-font.ts';
 import { invalidateBrandFontsCache } from './fonts.ts';
 
 const OUT = resolve(process.env.RENDER_OUT_DIR ?? './.data/renders');
+
+/**
+ * Certification, run from the GUI instead of a terminal. `render-goldens.ts`
+ * is a standalone CLI script (top-level await, process.exit on completion) —
+ * rather than refactor its internals to be importable, this spawns it exactly
+ * as the CLI does and parses its own progress lines, since those lines are
+ * already the single source of truth a human reads when running it by hand.
+ * One job at a time, in memory: this is a local admin action for whoever has
+ * the dashboard open, not a queued multi-tenant operation.
+ */
+interface GoldenJob { running: boolean; checked: number; total: number; done: boolean; passed?: number; error?: string; startedAt?: number; finishedAt?: number }
+let goldenJob: GoldenJob = { running: false, checked: 0, total: 0, done: false };
+
+function startGoldenRun(): void {
+  goldenJob = { running: true, checked: 0, total: 0, done: false, startedAt: Date.now() };
+  const child = spawn(process.execPath, ['--experimental-strip-types', 'scripts/render-goldens.ts', '--update'], {
+    cwd: process.cwd(), env: process.env,
+  });
+  let outBuf = '', errBuf = '';
+  child.stdout.on('data', (chunk: Buffer) => {
+    outBuf += chunk.toString();
+    const lines = outBuf.split('\n'); outBuf = lines.pop() ?? '';
+    for (const line of lines) {
+      const progress = line.match(/(\d+)\/(\d+) renders checked/);
+      if (progress) { goldenJob.checked = Number(progress[1]); goldenJob.total = Number(progress[2]); }
+      const finished = line.match(/(\d+)\/(\d+) passed/);
+      if (finished) { goldenJob.passed = Number(finished[1]); goldenJob.total = Number(finished[2]); }
+    }
+  });
+  child.stderr.on('data', (chunk: Buffer) => { errBuf += chunk.toString(); });
+  child.on('error', (e) => { goldenJob = { ...goldenJob, running: false, done: true, error: e.message, finishedAt: Date.now() }; });
+  child.on('exit', (code) => {
+    goldenJob = {
+      ...goldenJob, running: false, done: true, finishedAt: Date.now(),
+      error: code !== 0 ? (errBuf.trim().slice(-4000) || `certification exited with code ${code}`) : undefined,
+    };
+  });
+}
 
 interface RenderBody {
   brand?: string;
@@ -285,6 +324,16 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
         } catch (e) {
           return json(res, 400, { error: (e as Error).message });
         }
+      }
+
+      if (url.pathname === '/goldens/run' && req.method === 'POST') {
+        if (goldenJob.running) return json(res, 409, { error: 'a certification run is already in progress' });
+        startGoldenRun();
+        return json(res, 202, { started: true });
+      }
+
+      if (url.pathname === '/goldens/status' && req.method === 'GET') {
+        return json(res, 200, goldenJob);
       }
 
       if (url.pathname === '/variants' && req.method === 'POST') {

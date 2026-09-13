@@ -12,8 +12,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm --filter @newsroom/dashboard build
-      - run: pnpm test
       - run: pnpm golden
+      - run: pnpm test
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

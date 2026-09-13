@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useWidth } from '../use-width';
 import { LayersPanel, Inspector } from './panels.tsx';
 import { ThemePanel } from './theme-panel.tsx';
+import { CertifyButton } from './certify-button.tsx';
 import {
   blankNode, findNode, findParent, flatten, insertNode, removeNode, reorderNode, updateNode,
   type CanvasDef, type FieldDef, type FrameNode, type LayoutDoc, type LayoutNode, type NodeKind,
@@ -212,6 +213,7 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
           <button type="button" onClick={() => setThemeOpen((v) => !v)} style={{ alignSelf: 'end', fontSize: 12 }}>
             {themeOpen ? 'Hide' : 'Edit'} brand palette &amp; fonts
           </button>
+          <div style={{ alignSelf: 'end' }}><CertifyButton /></div>
         </div>
         {themeOpen && (
           <div style={{ borderTop: '1px solid var(--line)', marginTop: 12, paddingTop: 12 }}>

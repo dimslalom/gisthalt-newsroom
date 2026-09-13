@@ -21,7 +21,7 @@ const STAGES = [
   { label: 'Steady state', hint: 'The floor is 5–7/day; event days run 12–16. This is where it settles.', suggestedCap: 16 },
 ];
 
-function AccountCard({ account, brandKey, onSaved }: { account: AccountRow; brandKey: string; onSaved: () => void }) {
+function AccountCard({ account, brandKey, onSaved, setLoading }: { account: AccountRow; brandKey: string; onSaved: () => void; setLoading: (message: string | null) => void }) {
   const [handle, setHandle] = useState(account.handle);
   const [stage, setStage] = useState(account.warmupStage);
   const [cap, setCap] = useState(account.dailyCap);
@@ -35,7 +35,7 @@ function AccountCard({ account, brandKey, onSaved }: { account: AccountRow; bran
   const looksLikeHandle = handle.trim() === '' || handle.trim().startsWith('@');
 
   async function save() {
-    setBusy(true); setError(''); setJustSaved(false);
+    setBusy(true); setLoading(`Saving ${PLATFORM_LABEL[account.platform] ?? account.platform} settings…`); setError(''); setJustSaved(false);
     try {
       const res = await fetch('/api/ops', {
         method: 'POST', headers: { 'content-type': 'application/json' },
@@ -48,7 +48,7 @@ function AccountCard({ account, brandKey, onSaved }: { account: AccountRow; bran
     } catch (e) {
       setError((e as Error).message);
     } finally {
-      setBusy(false);
+      setBusy(false); setLoading(null);
     }
   }
 
@@ -98,7 +98,7 @@ function AccountCard({ account, brandKey, onSaved }: { account: AccountRow; bran
         <button disabled={busy} onClick={() => setRemoving(true)}>Remove platform</button>
         {justSaved && !dirty && <span className="tag" style={{ color: 'var(--good)' }}>saved</span>}
       </div>
-      {removing && <div className={styles.full} role="group" aria-label="Confirm platform removal"><p>Remove this platform? Queued posts are cancelled; Chrome profile and history are kept.</p><button disabled={busy} onClick={async () => { setBusy(true); setError(''); try { await update({action:'platform_remove',key:brandKey,platform:account.platform}); onSaved(); } catch(e) {setError((e as Error).message);} finally {setBusy(false);} }}>Confirm removal</button> <button onClick={() => setRemoving(false)}>Keep platform</button></div>}
+      {removing && <div className={styles.full} role="group" aria-label="Confirm platform removal"><p>Remove this platform? Queued posts are cancelled; Chrome profile and history are kept.</p><button disabled={busy} onClick={async () => { setBusy(true); setLoading(`Removing ${PLATFORM_LABEL[account.platform] ?? account.platform}…`); setError(''); try { await update({action:'platform_remove',key:brandKey,platform:account.platform}); onSaved(); } catch(e) {setError((e as Error).message);} finally {setBusy(false);setLoading(null);} }}>Confirm removal</button> <button onClick={() => setRemoving(false)}>Keep platform</button></div>}
     </div>
   );
 }
@@ -107,20 +107,20 @@ async function update(body: Record<string,unknown>) {
   const res = await fetch('/api/ops',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
   const result = await res.json(); if (!res.ok) throw new Error(result.error ?? 'Unable to save');
 }
-function BrandSettings({group:g,onSaved}:{group:BrandGroup;onSaved:()=>void}) {
+function BrandSettings({group:g,onSaved,setLoading}:{group:BrandGroup;onSaved:()=>void;setLoading:(message:string|null)=>void}) {
   const [name,setName]=useState(g.name), [vertical,setVertical]=useState(g.vertical);
   const [platform,setPlatform]=useState(''), [busy,setBusy]=useState(false), [error,setError]=useState('');
   const missing=Object.keys(PLATFORM_LABEL).filter(p=>!g.accounts.some(a=>a.platform===p));
-  async function run(body:Record<string,unknown>) {setBusy(true);setError('');try {await update(body);onSaved();} catch(e){setError((e as Error).message);} finally {setBusy(false);}}
+  async function run(body:Record<string,unknown>, message:string) {setBusy(true);setLoading(message);setError('');try {await update(body);onSaved();} catch(e){setError((e as Error).message);} finally {setBusy(false);setLoading(null);}}
   return <div className="card" style={{marginTop:12}}>
     <div className="row" style={{alignItems:'end',flexWrap:'wrap'}}>
       <label className="field" style={{flex:1}}>Brand name<input maxLength={80} value={name} onChange={e=>setName(e.target.value)} /></label>
       <label className="field">Content type<select value={vertical} onChange={e=>setVertical(e.target.value)}><option value="f1">Formula 1</option><option value="film">Film & TV</option><option value="vct">VCT</option></select></label>
-      <button className="primary" disabled={busy || (name===g.name && vertical===g.vertical)} onClick={()=>run({action:'brand',key:g.key,name,vertical})}>Save brand</button>
+      <button className="primary" disabled={busy || (name===g.name && vertical===g.vertical)} onClick={()=>run({action:'brand',key:g.key,name,vertical}, 'Saving brand settings…')}>Save brand</button>
     </div>
     <p style={{color:'var(--muted)',fontSize:12}}>Content type determines news routing and the existing design preset. Renaming keeps account IDs and Chrome profiles unchanged. Custom artwork remains managed in the design tool.</p>
     {vertical!==g.vertical && <p>Changing type pauses platforms and cancels queued posts. Check settings before re-enabling publishing.</p>}
-    {missing.length>0 && <div className="row"><select aria-label="Platform to add" value={missing.includes(platform)?platform:''} onChange={e=>setPlatform(e.target.value)}><option value="">Choose a platform</option>{missing.map(p=><option key={p} value={p}>{PLATFORM_LABEL[p]}</option>)}</select><button disabled={busy || !missing.includes(platform)} onClick={()=>run({action:'platform_add',key:g.key,platform})}>Add platform</button></div>}
+    {missing.length>0 && <div className="row"><select aria-label="Platform to add" value={missing.includes(platform)?platform:''} onChange={e=>setPlatform(e.target.value)}><option value="">Choose a platform</option>{missing.map(p=><option key={p} value={p}>{PLATFORM_LABEL[p]}</option>)}</select><button disabled={busy || !missing.includes(platform)} onClick={()=>run({action:'platform_add',key:g.key,platform}, `Adding ${PLATFORM_LABEL[platform]}…`)}>Add platform</button></div>}
     {error && <p role="alert" style={{color:'var(--bad)'}}>{error}</p>}
   </div>;
 }
@@ -128,8 +128,10 @@ function BrandSettings({group:g,onSaved}:{group:BrandGroup;onSaved:()=>void}) {
 export function AccountsBoard({ groups }: { groups: BrandGroup[] }) {
   const router = useRouter();
   const [selected,setSelected]=useState(groups[0]?.key);
+  const [loading, setLoading] = useState<string | null>(null);
   return (
-    <div style={{ display: 'grid', gap: 28 }}>
+    <div style={{ display: 'grid', gap: 28 }} aria-busy={Boolean(loading)}>
+      {loading && <div className={styles.loading} role="status" aria-live="polite"><span className={styles.spinner} aria-hidden="true" /><strong>{loading}</strong><small>Please keep this page open.</small></div>}
       <nav className="row" aria-label="Publishing brands" style={{flexWrap:'wrap'}}>{groups.map(g=><button key={g.key} aria-pressed={selected===g.key} onClick={()=>setSelected(g.key)} className={selected===g.key?'primary':undefined}>{g.name} · {g.accounts.length} platforms</button>)}</nav>
       {groups.filter(g=>g.key===selected).map((g) => (
         <section key={g.key}>
@@ -137,12 +139,12 @@ export function AccountsBoard({ groups }: { groups: BrandGroup[] }) {
             <div className="row"><h2 style={{ margin: 0 }}>{g.name}</h2><span className="tag">{g.vertical}</span></div>
             <span className="tag">{g.configuredCount}/{g.accounts.length} configured</span>
           </div>
-          <BrandSettings key={`${g.key}:${g.name}:${g.vertical}`} group={g} onSaved={()=>router.refresh()} />
+          <BrandSettings key={`${g.key}:${g.name}:${g.vertical}`} group={g} onSaved={()=>router.refresh()} setLoading={setLoading} />
           <p style={{color:'var(--muted)',fontSize:12}}>Platforms share this brand’s content type. Each has its own login, warm-up stage, and daily limit. Enable only after configuring a real handle and checking login.</p>
           {!g.accounts.length && <p>No platforms connected. Add a platform above to get started.</p>}
           <div className="grid" style={{ gridTemplateColumns: '1fr', gap: 12, marginTop: 10 }}>
             {g.accounts.map((a) => (
-              <AccountCard key={`${a.id}:${a.handle}:${a.warmupStage}:${a.dailyCap}:${a.active}`} account={a} brandKey={g.key} onSaved={() => router.refresh()} />
+              <AccountCard key={`${a.id}:${a.handle}:${a.warmupStage}:${a.dailyCap}:${a.active}`} account={a} brandKey={g.key} onSaved={() => router.refresh()} setLoading={setLoading} />
             ))}
           </div>
         </section>
