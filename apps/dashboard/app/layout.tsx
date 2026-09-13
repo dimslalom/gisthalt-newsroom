@@ -8,13 +8,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <nav className="top">
-          <span className="brand">// Newsroom</span>
+          <span className="brand"><img src="/gisthalt-logo.png" alt="Gisthalt" width={28} height={31} /></span>
+          <div className="nav-links">
+          <NavLink href="/design">Design</NavLink>
           <NavLink href="/lab">Template lab</NavLink>
           <NavLink href="/contact-sheet">Contact sheet</NavLink>
           <NavLink href="/review">Review queue</NavLink>
+          <NavLink href="/accounts">Accounts</NavLink>
           <NavLink href="/ops">Ops</NavLink>
+          </div>
           <span className="spacer" />
-          <span className="tag">localhost only</span>
+          <span className="local-label">Local workspace</span>
         </nav>
         <main>{children}</main>
       </body>

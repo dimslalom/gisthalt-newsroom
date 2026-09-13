@@ -1,10 +1,13 @@
 import { evaluateGate, validateCaption, type Platform } from '@newsroom/core';
-import { brandForVertical } from '@newsroom/brands';
+import { brandForVertical, workspaceBrands, platformsForBrand } from '@newsroom/brands';
 import type { CompositionRow, ReviewRow } from '@newsroom/db';
 import type { Ctx } from './context.ts';
 import { composeClaim, PLATFORMS } from './stages/compose.ts';
 import { claimOf } from './stages/gate.ts';
 import { enqueuePost } from './stages/publish.ts';
+
+/** The controlled first-launch fan-out. Threads stays out until its own acceptance run. */
+export const F1_LAUNCH_PLATFORMS: Platform[] = ['x', 'instagram', 'tiktok'];
 
 function actionable(ctx: Ctx, reviewId: string): ReviewRow {
   const review = ctx.store.getReview(reviewId);
@@ -16,10 +19,10 @@ function actionable(ctx: Ctx, reviewId: string): ReviewRow {
 export function accountForClaim(ctx: Ctx, claimId: string): string {
   const claim = ctx.store.getClaim(claimId);
   if (!claim) throw new Error('claim not found');
-  const brand = brandForVertical(claim.vertical);
-  const accounts = ctx.store.accounts.filter((a) => a.brand === brand.key);
+  const brands = workspaceBrands(ctx.store).filter(b => b.vertical === claim.vertical);
+  const accounts = ctx.store.accounts.filter((a) => brands.some(b => b.key === a.brand) && platformsForBrand(ctx.store, a.brand).includes(a.platform));
   const account = accounts.find((a) => a.active) ?? accounts[0];
-  if (!account) throw new Error(`no account for ${brand.key}; run pnpm seed`);
+  if (!account) throw new Error(`no configured account for ${claim.vertical}`);
   return account.id;
 }
 export async function prepareReview(ctx: Ctx, reviewId: string): Promise<CompositionRow> {
@@ -41,6 +44,29 @@ export async function approve(ctx: Ctx, reviewId: string, accountId?: string, pl
   ctx.store.resolveReview(reviewId, 'approved', ctx.now(), 'approved by owner');
   ctx.store.log({ stage: 'review', level: 'info', msg: 'approved', dedupeHash: ctx.store.getClaim(review.claimId)!.dedupeHash, latencyMs: null, meta: { reviewId, compositionId: composition.id } });
   return { review, composition };
+}
+
+/**
+ * Queue one reviewed F1 composition for the three launch platforms only.
+ * This does not bypass the normal account, warm-up, pacing, receipt, or
+ * reconciliation safeguards; the native agent still performs the external
+ * submission later, using its own live/dry-run environment.
+ */
+export async function approveF1Launch(ctx: Ctx, reviewId: string) {
+  const review = actionable(ctx, reviewId);
+  const claim = ctx.store.getClaim(review.claimId);
+  if (!claim || claim.vertical !== 'f1') throw new Error('the three-platform launch is available only for an F1 review');
+  const problems: string[] = [];
+  const launchBrand = ctx.store.getAccount(accountForClaim(ctx, claim.id))!.brand;
+  for (const platform of F1_LAUNCH_PLATFORMS) {
+    const account = ctx.store.accounts.find((row) => row.brand === launchBrand && row.platform === platform && row.active);
+    if (!account) { problems.push(`${platform}: inactive`); continue; }
+    if (!account.handle.trim() || /placeholder/i.test(account.handle) || account.warmupStage < 1 || account.dailyCap < 1) { problems.push(`${platform}: account setup or warm-up incomplete`); continue; }
+    const session = ctx.store.sessions.find((row) => row.accountId === account.id);
+    if (!session?.healthy) problems.push(`${platform}: native browser session has not passed a login check`);
+  }
+  if (problems.length) throw new Error(`F1 launch preflight failed — ${problems.join('; ')}`);
+  return approve(ctx, reviewId, undefined, F1_LAUNCH_PLATFORMS);
 }
 export function reject(ctx: Ctx, reviewId: string, note = 'rejected by owner') {
   actionable(ctx, reviewId);

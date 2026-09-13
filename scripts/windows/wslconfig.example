@@ -1,0 +1,20 @@
+# Copy this file to %UserProfile%\.wslconfig on the Windows host (i.e. C:\Users\<you>\.wslconfig)
+# and restart WSL2 (`wsl --shutdown` from PowerShell, then reopen Docker Desktop) for it to take effect.
+#
+# Docker Desktop on Windows runs its Linux containers inside a WSL2 VM. Without a cap, that VM
+# will grow to consume up to 50% of total RAM (or all of it, on older Docker Desktop versions) and
+# never give it back — the exact failure mode you don't want on a box also running headed Chrome
+# for the publisher agent, 24/7, unattended.
+#
+# Tune `memory` and `processors` to your machine: leave at least 4-6 GB and a couple of cores for
+# Windows itself, the agent's Chrome windows, and headroom for anything else you run there.
+# The values below assume a 16 GB machine; adjust proportionally on a bigger or smaller one.
+
+[wsl2]
+memory=8GB
+processors=4
+swap=2GB
+
+# Releases free memory back to Windows a few seconds after a container stops using it,
+# instead of holding onto the high-water mark for the life of the VM.
+autoMemoryReclaim=gradual

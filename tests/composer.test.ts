@@ -46,8 +46,8 @@ describe('fixture gating — enforced in code, not by discipline', () => {
 
   it('refuses a layout that is not in the manifest for that archetype', () => {
     const manifest = loadPassing()!;
-    expect(isLayoutShippable('classification', 'hero-left', manifest)).toBe(false);
-    expect(isLayoutShippable('classification', 'stacked', manifest)).toBe(true);
+    expect(isLayoutShippable('f1', 'classification', 'hero-left', manifest)).toBe(false);
+    expect(isLayoutShippable('f1', 'classification', 'stacked', manifest)).toBe(true);
   });
 });
 

@@ -12,8 +12,7 @@ export default async function LabPage({searchParams}:{searchParams:Promise<{bran
         <h1>Template lab</h1>
         <div className="empty">
           The renderer is not answering.<br />
-          Start it with <code>pnpm renderer</code>, then reload. Previews must come from the
-          container renderer, never from the browser you are reading this in.
+          Start it with <code>pnpm renderer</code>, then reload to see layout previews.
         </div>
       </>
     );

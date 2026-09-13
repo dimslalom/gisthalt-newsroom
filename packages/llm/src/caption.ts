@@ -7,7 +7,7 @@ import type { GeminiRouter } from './router.ts';
  * `fields`; the model is asked to phrase, never to add. Cached by claim hash,
  * so a retry or a design reshuffle costs nothing.
  */
-export function captionPrompt(fields: Record<string, unknown>, platform: string, maxChars: number, fallback: string): string {
+export function captionPrompt(fields: Record<string, unknown>, platform: string, maxChars: number, fallback: string, voiceGuide?: string): string {
   return `Tulis caption media sosial berbahasa Indonesia untuk akun berita.
 
 ATURAN KERAS:
@@ -17,7 +17,7 @@ ATURAN KERAS:
 - Nada: ringkas, faktual, percaya diri. Bukan clickbait.
 - Platform: ${platform}.
 - Balas hanya dengan teks caption.
-
+${voiceGuide ? `\nSUARA DAN GAYA BRAND (wajib diikuti):\n${voiceGuide}\n` : ''}
 FIELDS: ${JSON.stringify(fields)}
 
 Caption cadangan (pakai gaya ini jika ragu): ${fallback}`;
@@ -30,13 +30,14 @@ export async function writeCaption(
   platform: string,
   maxChars: number,
   fallback: string,
+  voiceGuide?: string,
 ): Promise<{ caption: string; model: string; cached: boolean; usedFallback: boolean }> {
   if (claim.sourceTier === 'A') return { caption: fallback, model: 'none', cached: false, usedFallback: true };
   try {
     const res = await router.call({
       purpose: 'copy',
-      prompt: captionPrompt(fields, platform, maxChars, fallback),
-      cacheKey: `caption:${dedupeHash(claim)}:${platform}`,
+      prompt: captionPrompt(fields, platform, maxChars, fallback, voiceGuide),
+      cacheKey: `caption:${dedupeHash(claim)}:${platform}:${voiceGuide ? 'v' : 'nov'}`,
       maxOutputTokens: 400,
     });
     const text = res.text.trim();

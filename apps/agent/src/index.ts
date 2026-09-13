@@ -4,10 +4,16 @@ import { closeDatabase } from '@newsroom/db';
 let stopping = false;
 for (const signal of ['SIGINT','SIGTERM'] as const) process.once(signal, () => { stopping = true; });
 let lastSessionCheck = 0;
+const boundedMs = (value: string | undefined, fallback: number, min: number, max: number) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(min, Math.min(max, parsed)) : fallback;
+};
+const sessionCheckMs = boundedMs(process.env.AGENT_SESSION_CHECK_MS, 300_000, 10_000, 3_600_000);
+const pollMs = boundedMs(process.env.AGENT_POLL_MS, 5_000, 1_000, 60_000);
 while (!stopping) {
   try {
     await withCtx((ctx) => ctx.store.setSetting('agentHeartbeat', ctx.now().toISOString()));
-    if (Date.now() - lastSessionCheck > Number(process.env.AGENT_SESSION_CHECK_MS ?? 3600000)) {
+    if (Date.now() - lastSessionCheck > sessionCheckMs) {
       const accounts = await withCtx((ctx) => ctx.store.accounts.filter((a) => a.active));
       for (const account of accounts) {
         const health = await adapterFor(account.platform).checkSession(account.id);
@@ -21,6 +27,6 @@ while (!stopping) {
     }
     await publishNext();
   } catch (e) { console.error(JSON.stringify({ stage: 'agent', error: (e as Error).message })); }
-  await new Promise((r) => setTimeout(r, Number(process.env.AGENT_POLL_MS ?? 5000)));
+  await new Promise((r) => setTimeout(r, pollMs));
 }
 await closeDatabase();

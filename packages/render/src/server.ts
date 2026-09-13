@@ -1,11 +1,20 @@
 import { createServer } from 'node:http';
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
-import { compose, composeCarousel, enumerateVariants, SKINS, type Brand, type CompositionSpec, type LayoutKey } from '@newsroom/design';
+import {
+  clearLayoutOverride, compose, composeCarousel, enumerateVariants, getLayoutOverride, saveLayoutOverride,
+  getLayoutDoc, saveLayoutDoc, deleteLayoutDoc, seedDoc, presentFields, FIELDS, CANVASES, CANVAS_KEYS,
+  loadThemeOverride, saveThemeOverride, clearThemeOverride, FONT_SLOTS,
+  type Brand, type CanvasKey, type CompositionSpec, type LayoutKey, type LayoutOverride,
+  type SkinColourRole, type FontSlot, type ThemeOverride, type LetterSpacingSlot,
+} from '@newsroom/design';
 import type { Claim } from '@newsroom/core';
 import { brandByKey, brands } from '@newsroom/brands';
 import { loadFixture, fixtureNames } from './fixtures.ts';
 import { renderComposition } from './render.ts';
+import { fetchGoogleFont } from './google-fonts.ts';
+import { pinUploadedFont } from './custom-font.ts';
+import { invalidateBrandFontsCache } from './fonts.ts';
 
 const OUT = resolve(process.env.RENDER_OUT_DIR ?? './.data/renders');
 
@@ -20,6 +29,9 @@ interface RenderBody {
   imagePath?: string | null;
   reshuffle?: number;
   fileName?: string;
+  canvas?: CanvasKey;
+  /** An unsaved document from the editor, previewed without persisting. */
+  doc?: unknown;
 }
 
 function specFor(body: RenderBody): { spec: CompositionSpec; imagePath: string | null } {
@@ -32,7 +44,7 @@ function specFor(body: RenderBody): { spec: CompositionSpec; imagePath: string |
   if (body.archetype && !requested) throw new Error('unknown archetype');
   if (fixture && requested) claim = {...claim, vertical:brand.vertical, claimType:requested.claimTypes[0]!};
   if (body.layout && requested && !requested.layouts.includes(body.layout)) throw new Error('layout is not supported by archetype');
-  if (body.skin && !SKINS.some(s=>s.key===body.skin)) throw new Error('unknown skin');
+  if (body.skin && !brand.skins.some(s=>s.key===body.skin)) throw new Error('unknown skin');
   if (body.accents && (body.accents.length > 2 || new Set(body.accents).size !== body.accents.length || body.accents.some(a=>!['diagonal','halftone','grain','ticker','watermark','cropmarks'].includes(a)))) throw new Error('invalid accents');
   const imagePath = body.imagePath ?? fixture?.imagePath ?? null;
 
@@ -47,7 +59,9 @@ function specFor(body: RenderBody): { spec: CompositionSpec; imagePath: string |
       archetype,
       model: archetype.model(claim),
       layout: body.layout ?? archetype.layouts[0]!,
-      skin: body.skin ? SKINS.find((s) => s.key === body.skin) ?? base.skin : base.skin,
+      // This brand's own skin set, never the shared global list — see the same
+      // fix in composer.ts for why that substitution is a real bug, not style.
+      skin: body.skin ? brand.skins.find((s) => s.key === body.skin) ?? base.skin : base.skin,
       accents: (body.accents as CompositionSpec['accents']) ?? base.accents,
     },
     imagePath,
@@ -84,7 +98,7 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
         return json(res, 200, {
           brands: brands.map((b) => ({ key: b.key, name: b.name })),
           fixtures: fixtureNames(),
-          skins: SKINS.map((s) => s.key),
+          skins: brand.skins.map((s) => s.key),
           archetypes: brand.archetypes.map((a) => ({ key: a.key, layouts: a.layouts, claimTypes: a.claimTypes })),
         });
       }
@@ -100,11 +114,18 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
       if (url.pathname === '/render' && req.method === 'POST') {
         const body = JSON.parse(await readBody(req)) as RenderBody;
         const { spec, imagePath } = specFor(body);
-        const out = await renderComposition(spec, { outDir: OUT, imagePath, fileName: body.fileName ? basename(body.fileName) : undefined });
+        const out = await renderComposition(spec, {
+          outDir: OUT, imagePath,
+          fileName: body.fileName ? basename(body.fileName) : undefined,
+          canvas: body.canvas, docOverride: body.doc,
+        });
         return json(res, 200, {
           ...out,
           url: `/renders/${basename(out.path)}`,
           spec: { archetype: spec.archetype.key, layout: spec.layout, skin: spec.skin.key, accents: spec.accents },
+          // Which optional fields this claim actually carries, so the editor can
+          // grey out bindings that would vanish on the sample being previewed.
+          present: [...presentFields(spec.model, spec.brand)],
         });
       }
 
@@ -114,6 +135,156 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
         const images = [];
         for (const spec of specs) images.push(await renderComposition(spec, { outDir: OUT, imagePath: spec.model.imageUrl }));
         return json(res, 200, { images, skin: specs[0]!.skin.key, width: 1080, height: 1350 });
+      }
+
+      // The visual editor's read/write surface: the dashboard is a thin proxy to
+      // these two routes, never touching the brand config files itself — the
+      // renderer is the one process that actually resolves an override at render
+      // time, so it's the one process that owns saving and clearing them too.
+      if (url.pathname === '/layout-override' && req.method === 'GET') {
+        const brand = url.searchParams.get('brand') ?? 'f1';
+        const archetype = url.searchParams.get('archetype') ?? '';
+        const layout = url.searchParams.get('layout') ?? '';
+        if (!archetype || !layout) return json(res, 400, { error: 'archetype and layout are required' });
+        return json(res, 200, { override: getLayoutOverride(brand, archetype, layout) });
+      }
+
+      if (url.pathname === '/layout-override' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; archetype?: string; layout?: string; patch?: Partial<LayoutOverride> };
+        if (!body.archetype || !body.layout) return json(res, 400, { error: 'archetype and layout are required' });
+        brandByKey(body.brand ?? 'f1'); // 404s on an unknown brand before touching the filesystem
+        const saved = saveLayoutOverride(body.brand ?? 'f1', body.archetype, body.layout, body.patch ?? {});
+        return json(res, 200, { override: saved });
+      }
+
+      if (url.pathname === '/layout-override/clear' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; archetype?: string; layout?: string };
+        if (!body.archetype || !body.layout) return json(res, 400, { error: 'archetype and layout are required' });
+        clearLayoutOverride(body.brand ?? 'f1', body.archetype, body.layout);
+        return json(res, 200, { override: {} });
+      }
+
+      /* ---------------------------------------------------- layout documents */
+
+      if (url.pathname === '/layout-doc' && req.method === 'GET') {
+        const brand = url.searchParams.get('brand') ?? 'f1';
+        const archetype = url.searchParams.get('archetype') ?? '';
+        const layout = url.searchParams.get('layout') ?? '';
+        if (!archetype || !layout) return json(res, 400, { error: 'archetype and layout are required' });
+        return json(res, 200, {
+          doc: getLayoutDoc(brand, archetype, layout),
+          fields: FIELDS,
+          canvases: CANVAS_KEYS.map((k) => CANVASES[k]),
+        });
+      }
+
+      if (url.pathname === '/layout-doc' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; archetype?: string; layout?: string; doc?: unknown };
+        if (!body.archetype || !body.layout) return json(res, 400, { error: 'archetype and layout are required' });
+        brandByKey(body.brand ?? 'f1');
+        try {
+          return json(res, 200, { doc: saveLayoutDoc(body.brand ?? 'f1', body.archetype, body.layout, body.doc) });
+        } catch (e) {
+          return json(res, 400, { error: (e as Error).message });
+        }
+      }
+
+      /** Fork the built-in CSS layout into an editable document. This is the
+       *  only way a document comes into existence — starting from something
+       *  that already renders correctly beats starting from an empty frame. */
+      if (url.pathname === '/layout-doc/seed' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; archetype?: string; layout?: LayoutKey };
+        if (!body.archetype || !body.layout) return json(res, 400, { error: 'archetype and layout are required' });
+        brandByKey(body.brand ?? 'f1');
+        const seeded = saveLayoutDoc(body.brand ?? 'f1', body.archetype, body.layout, seedDoc(body.layout));
+        return json(res, 200, { doc: seeded });
+      }
+
+      if (url.pathname === '/layout-doc/delete' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; archetype?: string; layout?: string };
+        if (!body.archetype || !body.layout) return json(res, 400, { error: 'archetype and layout are required' });
+        deleteLayoutDoc(body.brand ?? 'f1', body.archetype, body.layout);
+        return json(res, 200, { doc: null });
+      }
+
+      /* --------------------------------------------------------- brand theme */
+      // The saved brand palette and fonts — as opposed to /layout-doc's
+      // per-node colours and fonts, which win for one layer in one document.
+      // `effective` is what brandByKey() actually hands every render right
+      // now (coded defaults + this override); `override` is only what's been
+      // explicitly replaced, which is what the editor needs to know whether a
+      // given colour/font shows as "brand default" or "custom".
+
+      if (url.pathname === '/theme' && req.method === 'GET') {
+        const brandKey = url.searchParams.get('brand') ?? 'f1';
+        const effective = brandByKey(brandKey); // applies the override already
+        return json(res, 200, {
+          override: loadThemeOverride(brandKey),
+          effective: {
+            skins: effective.skins.map((s) => ({
+              key: s.key, bg: s.bg, panel: s.panel, fg: s.fg, muted: s.muted, line: s.line, fallbackAccent: s.fallbackAccent,
+            })),
+            fonts: effective.tokens.fonts,
+            letterSpacing: effective.tokens.ls,
+          },
+        });
+      }
+
+      if (url.pathname === '/theme' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; patch?: Partial<ThemeOverride> };
+        const brandKey = body.brand ?? 'f1';
+        brandByKey(brandKey); // 404s on an unknown brand before touching the filesystem
+        const saved = saveThemeOverride(brandKey, body.patch ?? {});
+        return json(res, 200, { override: saved });
+      }
+
+      if (url.pathname === '/theme/clear' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; skin?: string; role?: SkinColourRole; font?: FontSlot; letterSpacing?: LetterSpacingSlot };
+        const brandKey = body.brand ?? 'f1';
+        brandByKey(brandKey);
+        const saved = clearThemeOverride(brandKey, { skin: body.skin, role: body.role, font: body.font, letterSpacing: body.letterSpacing });
+        if (body.font) invalidateBrandFontsCache(brandKey);
+        return json(res, 200, { override: saved });
+      }
+
+      /** Fetches a Google Font on demand (never at render time — see
+       *  google-fonts.ts) and pins it as the brand's font for that slot. */
+      if (url.pathname === '/theme/font' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; slot?: FontSlot; family?: string; weights?: number[] };
+        const brandKey = body.brand ?? 'f1';
+        if (!body.slot || !FONT_SLOTS.includes(body.slot)) return json(res, 400, { error: 'slot must be one of display, body, mono' });
+        if (!body.family?.trim()) return json(res, 400, { error: 'family is required' });
+        brandByKey(brandKey);
+        try {
+          const { family, weights } = await fetchGoogleFont(brandKey, body.family, body.weights);
+          invalidateBrandFontsCache(brandKey);
+          const saved = saveThemeOverride(brandKey, { fonts: { [body.slot]: { family, google: true } } });
+          return json(res, 200, { override: saved, weights });
+        } catch (e) {
+          return json(res, 502, { error: (e as Error).message });
+        }
+      }
+
+      /** The other way a designer gets a font in: their own file, base64 in
+       *  the body (JSON keeps this endpoint symmetric with /theme/font — no
+       *  separate multipart parser to maintain for one route). */
+      if (url.pathname === '/theme/font/upload' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; slot?: FontSlot; family?: string; weight?: number; fileBase64?: string };
+        const brandKey = body.brand ?? 'f1';
+        if (!body.slot || !FONT_SLOTS.includes(body.slot)) return json(res, 400, { error: 'slot must be one of display, body, mono' });
+        if (!body.family?.trim()) return json(res, 400, { error: 'family is required' });
+        if (!body.fileBase64) return json(res, 400, { error: 'file is required' });
+        brandByKey(brandKey);
+        try {
+          const bytes = Buffer.from(body.fileBase64, 'base64');
+          const weight = Number.isFinite(body.weight) ? Math.min(900, Math.max(100, Math.round(body.weight! / 100) * 100)) : 400;
+          const { family } = pinUploadedFont(brandKey, body.family.trim().slice(0, 80), weight, bytes);
+          invalidateBrandFontsCache(brandKey);
+          const saved = saveThemeOverride(brandKey, { fonts: { [body.slot]: { family, google: false } } });
+          return json(res, 200, { override: saved, weight });
+        } catch (e) {
+          return json(res, 400, { error: (e as Error).message });
+        }
       }
 
       if (url.pathname === '/variants' && req.method === 'POST') {
@@ -148,7 +319,9 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
 function readBody(req: import('node:http').IncomingMessage): Promise<string> {
   return new Promise((res, rej) => {
     let data = '';
-    req.on('data', (c) => { data += c; if (data.length > 2_000_000) { rej(new Error('request too large')); req.destroy(); } });
+    // 8MB, not 2MB: a base64-encoded font upload inflates ~33% over the raw
+    // file, and a variable/CJK-capable font can genuinely run a few MB.
+    req.on('data', (c) => { data += c; if (data.length > 8_000_000) { rej(new Error('request too large')); req.destroy(); } });
     req.on('end', () => res(data || '{}'));
     req.on('error', rej);
   });

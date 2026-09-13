@@ -19,6 +19,7 @@ export default async function ReviewPage() {
       state: r.state,
       expiresInMinutes: Math.max(0, Math.round((new Date(r.expiresAt).getTime() - now.getTime()) / 60000)),
       headline: claim?.headline ?? item?.title ?? '(no headline)',
+      vertical: claim?.vertical ?? null,
       claimType: claim?.claimType ?? '?',
       tier: claim?.sourceTier ?? '?',
       domain: claim?.sourceDomain ?? '?',

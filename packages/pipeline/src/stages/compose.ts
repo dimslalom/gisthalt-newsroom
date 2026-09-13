@@ -1,4 +1,4 @@
-import { brandForVertical } from '@newsroom/brands';
+import { brandForVertical, workspaceBrand, platformsForBrand } from '@newsroom/brands';
 import { compose } from '@newsroom/design';
 import type { ClaimRow, CompositionRow } from '@newsroom/db';
 import { fitCaption } from '@newsroom/core';
@@ -18,7 +18,7 @@ export const PLATFORMS: Platform[] = ['x', 'instagram', 'threads', 'tiktok'];
 export async function composeClaim(ctx: Ctx, row: ClaimRow, accountId: string, reshuffle = 0): Promise<CompositionRow> {
   const brand = brandForVertical(row.vertical);
   const account = ctx.store.getAccount(accountId);
-  if (!account || account.brand !== brand.key) throw new Error('composition account does not match the claim brand');
+  if (!account || workspaceBrand(ctx.store, account.brand).vertical !== row.vertical || !platformsForBrand(ctx.store, account.brand).includes(account.platform)) throw new Error('composition account does not match the claim brand');
   const previous = ctx.store.compositions.find((c) => c.claimId === row.id && c.accountId === accountId && c.renderedAt && c.imagePaths.length && reshuffle === 0);
   if (previous) return previous;
   const claim = claimOf(row);
@@ -37,7 +37,7 @@ export async function composeClaim(ctx: Ctx, row: ClaimRow, accountId: string, r
     const written = await writeCaption(
       ctx.router, claim,
       { headline: spec.model.headline, eyebrow: spec.model.eyebrow, subhead: spec.model.subhead, bigNumber: spec.model.bigNumber, rows: (spec.model.rows ?? []).slice(0, 3) },
-      platform, limit, fitCaption(fallback, platform),
+      platform, limit, fitCaption(fallback, platform), brand.voiceGuide,
     );
     captions[platform] = fitCaption(written.caption, platform);
   }

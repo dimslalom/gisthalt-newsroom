@@ -15,6 +15,12 @@ x-runtime: &runtime
   volumes:
     - ./.data/renders:/data/renders
     - ./.data/archive:/data/archive
+    # Live, writable, and shared by every service that resolves brand config or
+    # certification — workers compose() and the renderer's renderRemote() must
+    # agree on the exact same brands/ and fixtures/ on disk, or a saved design
+    # can certify against one thing and render against another.
+    - ./brands:/app/brands
+    - ./fixtures:/app/fixtures
 services:
   postgres:
     image: postgres:16-alpine
@@ -40,6 +46,17 @@ services:
     <<: *runtime
     command: ['pnpm', 'renderer']
     ports: ['127.0.0.1:8787:8787']
+    volumes:
+      - ./.data/renders:/data/renders
+      - ./.data/archive:/data/archive
+      # Live, writable: the visual editor's saves land here immediately and
+      # persist on the host as plain JSON, same as any other brand config —
+      # git-diffable, reviewable, no rebuild needed to see or keep a change.
+      # workers gets the identical pair via the shared x-runtime anchor above,
+      # so compose()'s certification check and this container's actual render
+      # always agree on the exact same files.
+      - ./brands:/app/brands
+      - ./fixtures:/app/fixtures
     healthcheck:
       test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:8787/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 15s

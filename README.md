@@ -87,7 +87,7 @@ Workers poll sources on persistent Graphile jobs; the default stack does **not**
 | **Template lab** | Pick a brand, archetype, fixture, layout, skin and accents. Render one preview or all valid combinations for an archetype. |
 | **Contact sheet** | Inspect the latest 60 treatments and a nine-post profile-grid preview. Select 2–6 same-brand claims to build a cover/body/outro carousel. |
 | **Review** | Edit each platform's caption, reshuffle the design, approve, reject, or hold for a second corroborating source. Reviews expire after 90 minutes; approval requires an active account. |
-| **Ops** | Pause publishing globally, configure account handles/warm-up/caps, pause individual sources, inspect source health and session state, cancel queued work, and reconcile uncertain posts. |
+| **Ops** | Pause publishing globally, configure account handles/warm-up/caps, pause individual sources, inspect source health and session state, cancel queued work, reconcile uncertain posts, and run a live-launch preflight. |
 
 A removal request for an already-live post still needs manual platform deletion and owner confirmation — the dashboard never claims a deletion it can't verify.
 
@@ -111,16 +111,29 @@ Copy `.env.example` to `.env`, fill in what you need, then recreate the affected
 |---|---|---|
 | `GEMINI_API_KEY` | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) (free tier) | Quoted prose extraction and caption copy. Without it (or on exhausted quota), structured tier-A data still flows with **zero** model calls; unextracted prose goes to review instead of being dropped. |
 | `TMDB_API_KEY` | [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api) | Indonesian-region release dates, cast and official trailer metadata for the Film/TV brand. |
-| `REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET` | [reddit.com/prefs/apps](https://www.reddit.com/prefs/apps) → create a **script** app | OAuth2 client-credentials auth against `oauth.reddit.com`. Reddit's public `/*.json` endpoint blocks non-browser callers outright, so without these two the adapter fails cleanly and visibly. Reddit is tier C either way — a signal that can only promote the primary source it links to, never a fact on its own. |
 | `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`, `DISCORD_OWNER_IDS`, `DISCORD_*_CHANNEL_ID` | [discord.com/developers/applications](https://discord.com/developers/applications) → bot token; enable Developer Mode in Discord to copy server/channel IDs | The Discord review loop — one-tap Publish / Edit / Reshuffle / Hold / Reject buttons that mirror the dashboard's Review screen. Start it with `docker compose --profile discord up -d bot`. |
+
+Reddit needs no credentials at all: it reads the public per-subreddit Atom feed (`reddit.com/r/<sub>/new/.rss`) rather than the OAuth API, since Reddit's 2026 Responsible Builder Policy closed self-service app creation in favor of a manual, unbounded-wait approval queue. It's tier C either way — a signal that can only promote the primary source it links to, never a fact on its own.
 
 FIA polling surfaces document links only — PDF-only decisions need human review. VLR completed-result parsing is implemented and fails visibly in Ops if upstream markup changes. Additional VCT/Film archetypes can render typed or reviewed claims without yet having a dedicated live source feed.
 
 ## Windows publisher
 
-The publisher is the one component that runs outside Docker — it needs a real, headed Chrome with a persistent, human-shaped browsing profile.
+**Only one piece of this stack is Windows-specific.** Postgres, the renderer, the workers and the dashboard are the same Docker Compose stack on macOS or Windows — nothing about them changes when you move hosts. The one thing that can't run in Docker is the publisher agent (`apps/agent`): it drives a real, headed Chrome with a persistent, human-shaped browsing profile, and that needs an actual desktop session. So the move from Mac-dev to Windows-24/7 is: stand the same `docker compose up -d` up on the Windows box, then add the native agent on top of it.
 
-1. On the Windows host (with Docker Desktop already running the rest of the stack): install **Node ≥22.9** (or 24), **pnpm 9.15.9**, **Google Chrome**, and **ffmpeg** (for TikTok's artwork-to-video conversion).
+### Host hygiene, once, before anything runs unattended
+
+A box left on 24/7 with nobody watching it needs these done up front, not discovered later:
+
+- **Disable sleep and hibernate**, including on the display's power plan — a sleeping PC is a publisher that silently stopped.
+- **Docker Desktop → Settings → General → Start Docker Desktop when you sign in.**
+- Copy [`scripts/windows/wslconfig.example`](scripts/windows/wslconfig.example) to `%UserProfile%\.wslconfig` and adjust `memory`/`processors` to the machine's actual RAM, then `wsl --shutdown`. Uncapped, the WSL2 VM backing Docker Desktop will grow to consume most of the machine and never give it back.
+- **Windows Update → Advanced options → Active hours**: set it wide, and defer or schedule restarts — an update-triggered reboot on a machine with no auto-login means the agent's headed Chrome never comes back.
+- **Enable auto-login** (`netplwiz`, or `sysdm.cpl` on some builds) so a reboot returns straight to a desktop session — headed Chrome cannot run against a locked screen or before anyone signs in.
+
+### Setting up the agent
+
+1. On the Windows host (with Docker Desktop already running the rest of the stack): install **Node ≥22.9** (or 24), **pnpm 9.15.9**, and **Google Chrome**.
 2. `pnpm install --frozen-lockfile` on Windows, to rebuild native dependencies for that platform.
 3. Run `scripts/windows/start-agent.ps1` in a logged-in Windows session. It points at Postgres on `55432` and the shared render folder.
 
@@ -129,6 +142,21 @@ The publisher is the one component that runs outside Docker — it needs a real,
 **Going live** means setting `PUBLISH_DRY_RUN=false` in the native agent's environment only, enabling real accounts deliberately, completing a manual first login in each headed Chrome profile (`.data/profiles/<account-id>`), and verifying one controlled post per platform before trusting the queue. The adapters require the English desktop UI. **Actual logged-in X/Instagram/Threads/TikTok submission has not been validated in this workspace** — that acceptance step is the owner's to run. CAPTCHAs, checkpoints and account restrictions need a human at the keyboard.
 
 `scripts/windows/install-agent-task.ps1` optionally registers an at-login task; it is not installed automatically. An interrupted submission stays `publishing` or `uncertain` until reconciled in Ops — never delete a receipt to blindly retry.
+
+### Knowing when it's stopped
+
+The worker process and the native agent each write a heartbeat timestamp every few seconds. With `DISCORD_BOT_TOKEN`, `DISCORD_OWNER_IDS` and `DISCORD_ALERTS_CHANNEL_ID` set, the Discord bot (`docker compose --profile discord up -d bot`) already pages `#alerts` the moment either heartbeat goes stale for two minutes — no separate watchdog to build or run. Without Discord configured, the same staleness is visible at a glance on the Ops screen.
+
+### Controlled first F1 post: X, Instagram, and TikTok
+
+The Review queue now has a **Launch X + Instagram + TikTok** action on F1 items. It queues exactly one rendered composition to those three platforms; it never includes Threads. The action remains subject to the normal daily cap, quiet hours, deterministic jitter, durable submission receipts, and manual reconciliation safeguards.
+
+1. On the Windows publisher host, keep `PUBLISH_DRY_RUN=true`. In **Accounts**, set the three F1 handles, make only **X**, **Instagram**, and **TikTok** active, and use warm-up stage 1 with a cap of 1.
+2. Start `pnpm agent`. Chrome opens a separate persistent profile for each active platform. Log in manually and finish any platform checkpoint or CAPTCHA. Wait for each account to show **session healthy** in the dashboard.
+3. Choose one non-demo F1 review with its render and captions checked. Click **Launch X + Instagram + TikTok**. The preflight refuses placeholder handles, stage-0 accounts, missing sessions, non-F1 items, and any missing launch platform.
+4. Confirm that exactly three `ready` jobs appear in Ops. They should become `simulated` in dry-run mode; verify the artwork, captions, archive files, timing, and no accidental Threads job.
+5. For the real controlled post, change `PUBLISH_DRY_RUN=false` in the **native Windows agent environment only** and restart that agent. Do not change Docker's forced dry-run setting. Approve one newly reviewed F1 item, then wait through its normal jitter rather than forcing an exact cadence.
+6. Confirm all three URLs in Ops and retain the local archive. If any job is `publishing` or `uncertain`, inspect the platform first and use Ops reconciliation; never blindly retry or remove its receipt.
 
 ## Validation & testing
 

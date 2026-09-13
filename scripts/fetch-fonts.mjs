@@ -9,9 +9,14 @@ import { dirname, resolve } from 'node:path';
 
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36';
 const WANT = [
+  // Generic placeholder brand (VCT, Film/TV — until each gets its own identity).
   ['Saira Condensed', [400, 600, 700]],
   ['IBM Plex Sans', [400, 500, 600]],
   ['IBM Plex Mono', [400, 500]],
+  // SektorTiga (F1): "Geometric, technical sans-serif... always use tabular
+  // figures" for headlines/numerics, neutral high-legibility sans for body.
+  ['Plus Jakarta Sans', [400, 500, 600, 700]],
+  ['Inter', [400, 500, 600]],
 ];
 const OUT = resolve('packages/render/assets/fonts.css');
 

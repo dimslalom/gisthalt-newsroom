@@ -1,0 +1,11 @@
+{
+  "fonts": {
+    "display": {
+      "family": "DIN Condensed",
+      "google": false
+    }
+  },
+  "letterSpacing": {
+    "disp": "-0.03em"
+  }
+}

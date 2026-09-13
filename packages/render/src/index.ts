@@ -1,4 +1,6 @@
 export * from './fonts.ts';
+export * from './google-fonts.ts';
+export * from './custom-font.ts';
 export * from './pool.ts';
 export * from './render.ts';
 export * from './golden.ts';

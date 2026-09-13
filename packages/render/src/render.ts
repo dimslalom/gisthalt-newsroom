@@ -2,7 +2,11 @@ import sharp from 'sharp';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
-import { CANVAS, renderArtHtml, pickLogoCorner, pickTextTreatment, type CompositionSpec } from '@newsroom/design';
+import {
+  CANVAS, CANVASES, renderArtHtml, renderDocHtml, getLayoutDoc, sanitizeDoc, pickLogoCorner, pickTextTreatment,
+  resolveColours, scanContrast,
+  type CanvasKey, type CompositionSpec, type ContrastFinding, type LayoutDoc,
+} from '@newsroom/design';
 import { fontsCss, fontsPinned } from './fonts.ts';
 import { getPool } from './pool.ts';
 
@@ -15,6 +19,23 @@ export interface RenderOptions {
   /** Local path or http(s) URL. Remote images are fetched once and inlined. */
   imagePath?: string | null;
   fileName?: string;
+  /** Output size. Only meaningful for layouts backed by a document — the
+   *  built-in CSS layouts are authored against 4:5 and are not resizable. */
+  canvas?: CanvasKey;
+  /** Render this document instead of whatever is saved, so the editor can
+   *  preview an unsaved edit without writing to the brand's layouts.json. */
+  docOverride?: unknown;
+  /** Hard-fail on a failing contrast finding instead of only reporting it.
+   *  Only scripts/render-goldens.ts sets this — a live preview always warns. */
+  certify?: boolean;
+}
+
+export interface ElementRect {
+  /** The template path reports stable element names ('headline'); the document
+   *  path reports node ids, which is what the layers panel selects by. */
+  name: string;
+  kind?: string;
+  x: number; y: number; width: number; height: number;
 }
 
 export interface RenderResult {
@@ -31,6 +52,17 @@ export interface RenderResult {
     fittedPx: string | null;
     fontsPinned: boolean;
   };
+  /** Every `[data-el]` node's real rendered box, in canvas pixels relative to
+   *  the `.art` element's own top-left — what the visual editor draws its
+   *  bounding-box handles on top of. Only elements this claim/layout actually
+   *  rendered appear here; nothing is a guess. */
+  elements: ElementRect[];
+  /** Live, warn-only contrast findings for a document-backed layout — empty
+   *  for the built-in CSS layouts, which stay covered by assertContrast()'s
+   *  fixed pair list alone. Certification (scripts/render-goldens.ts) is what
+   *  turns a failing finding here into a hard error, via renderDocHtml's
+   *  `certify` option; a live preview only ever warns. */
+  contrast: ContrastFinding[];
 }
 
 /** Local file or remote URL to a data: URI, so the page loads nothing at render time. */
@@ -63,6 +95,14 @@ export async function renderComposition(spec: CompositionSpec, opts: RenderOptio
   const outDir = resolve(opts.outDir ?? process.env.RENDER_OUT_DIR ?? './.data/renders');
   mkdirSync(outDir, { recursive: true });
 
+  // A document, if this brand/archetype/layout has one. No document means the
+  // built-in CSS template, byte-identical to before this existed.
+  const doc = opts.docOverride
+    ? (sanitizeDoc(opts.docOverride) ?? null)
+    : getLayoutDoc(spec.brand.key, spec.archetype.key, spec.layout);
+  const canvasKey: CanvasKey = opts.canvas ?? doc?.canvas ?? 'portrait-4x5';
+  const size = doc ? CANVASES[canvasKey] : { width: CANVAS.width, height: CANVAS.height };
+
   const rawImage = opts.imagePath ?? spec.model.imageUrl ?? null;
   let imageSrc = rawImage ? await inlineImage(rawImage) : null;
   let normalizedImage: string | null = null;
@@ -72,7 +112,7 @@ export async function renderComposition(spec: CompositionSpec, opts: RenderOptio
       const meta = await sharp(bytes).metadata();
       if ((meta.width ?? 0) < 300 || (meta.height ?? 0) < 300) imageSrc = null;
       else {
-        const cropped = await sharp(bytes).rotate().resize(1080, 1350, { fit: 'cover', position: sharp.strategy.attention }).png().toBuffer();
+        const cropped = await sharp(bytes).rotate().resize(size.width, size.height, { fit: 'cover', position: sharp.strategy.attention }).png().toBuffer();
         normalizedImage = join(outDir, `.image-${createHash('sha256').update(cropped).digest('hex').slice(0,16)}.png`);
         writeFileSync(normalizedImage, cropped);
         imageSrc = `data:image/png;base64,${cropped.toString('base64')}`;
@@ -97,7 +137,13 @@ export async function renderComposition(spec: CompositionSpec, opts: RenderOptio
     skin: spec.skin,
   };
 
-  const html = renderArtHtml(resolved, { fontsCss: fontsCss(JSON.stringify(spec.model)), imageSrc });
+  const fonts = fontsCss(JSON.stringify(spec.model), spec.brand.key);
+  const html = doc
+    ? renderDocHtml(doc, resolved, { fontsCss: fonts, imageSrc, canvas: canvasKey, certify: opts.certify })
+    : renderArtHtml(resolved, { fontsCss: fonts, imageSrc });
+  // Live, warn-only — the same scan certification later runs with `certify:
+  // true` inside renderDocHtml, but a preview render must never throw on it.
+  const contrast: ContrastFinding[] = doc ? scanContrast(doc, resolved, resolveColours(resolved).vars) : [];
 
   const pool = getPool();
   const page = await pool.acquire();
@@ -106,12 +152,28 @@ export async function renderComposition(spec: CompositionSpec, opts: RenderOptio
     await page.evaluate(() => (document as unknown as { fonts: FontFaceSet }).fonts.ready);
     await page.waitForFunction(() => (window as unknown as { __fitDone?: boolean }).__fitDone === true, null, { timeout: 5000 })
       ;
+    // `.headline` is the template path's class; a document names its own nodes,
+    // so ask for whatever actually ran through fitText instead.
     const fit = await page.evaluate(() => {
-      const el = document.querySelector('.headline') as HTMLElement | null;
+      const el = (document.querySelector('.headline') ?? document.querySelector('[data-fitted]')) as HTMLElement | null;
       return { overflow: el?.dataset.overflow === '1', px: el?.dataset.fitted ?? null };
     });
+    // One pass, so every rect is measured against the same layout snapshot —
+    // the editor's overlay boxes are only ever as good as this geometry.
+    const elements: ElementRect[] = await page.evaluate(() => {
+      const art = document.querySelector('.art')!.getBoundingClientRect();
+      return Array.from(document.querySelectorAll('[data-el]')).map((node) => {
+        const r = node.getBoundingClientRect();
+        return {
+          name: node.getAttribute('data-el')!,
+          kind: node.getAttribute('data-kind') ?? undefined,
+          x: Math.round(r.left - art.left), y: Math.round(r.top - art.top),
+          width: Math.round(r.width), height: Math.round(r.height),
+        };
+      });
+    });
 
-    const name = opts.fileName ?? `${hashSpec(resolved)}.png`;
+    const name = opts.fileName ?? `${hashSpec(resolved, doc)}.png`;
     const file = join(outDir, name);
     const el = await page.$('.art');
     const buf = await el!.screenshot({ type: 'png' });
@@ -120,19 +182,25 @@ export async function renderComposition(spec: CompositionSpec, opts: RenderOptio
     return {
       path: file,
       bytes: buf.length,
-      width: CANVAS.width,
-      height: CANVAS.height,
+      width: size.width,
+      height: size.height,
       ms: Date.now() - started,
       guards: { logo: String(logo), treatment, headlineOverflowed: fit.overflow, fittedPx: fit.px, fontsPinned: fontsPinned() },
+      elements,
+      contrast,
     };
   } finally {
     await pool.release(page);
   }
 }
 
-export function hashSpec(spec: CompositionSpec): string {
+export function hashSpec(spec: CompositionSpec, doc?: LayoutDoc | null): string {
   return createHash('sha1').update(JSON.stringify({
     brand: spec.brand.key, archetype: spec.archetype.key, layout: spec.layout,
     skin: spec.skin.key, accents: spec.accents, model: spec.model,
+    // The doc drives everything the editor lets you drag or recolor; leaving
+    // it out of the hash meant every unsaved edit reused the same filename,
+    // so the preview <img>'s src never changed and the browser never refetched.
+    doc,
   })).digest('hex').slice(0, 16);
 }

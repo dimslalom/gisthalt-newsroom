@@ -3,6 +3,7 @@ import { Reconciliation } from './reconciliation.tsx';
 import { Controls } from './controls.tsx';
 import { store } from '../../lib/store.ts';
 import { getCatalog } from '../../lib/renderer.ts';
+import { assessReadiness } from '@newsroom/pipeline';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,7 @@ export default async function Ops() {
   const s = await store();
   const now = new Date();
   const catalog = await getCatalog();
+  const readiness = assessReadiness(s, { rendererUp: Boolean(catalog), dryRun: process.env.PUBLISH_DRY_RUN !== 'false' });
   const published = s.posts.filter((p) => p.status === 'published');
   const latencies = published.map((p) => p.latencyMs ?? 0).sort((a, b) => a - b);
   const p50 = latencies[Math.floor(latencies.length / 2)] ?? 0;
@@ -26,11 +28,10 @@ export default async function Ops() {
     <>
       <h1>Ops</h1>
       <p className="lede">
-        Sessions dying silently is the most likely failure mode of browser publishing, so it gets a
-        screen and not just an alert.
+        Monitor source polling, publishing sessions, and queue activity.
       </p>
 
-      <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+      <div className="metrics">
         {[
           ['Items', s.items.length],
           ['Claims', s.claims.length],
@@ -40,15 +41,30 @@ export default async function Ops() {
           ['Publish p50', `${p50} ms`],
           ['Renderer', catalog ? 'up' : 'DOWN'],
         ].map(([k, v]) => (
-          <div className="card" key={String(k)}>
+          <div className="metric" key={String(k)}>
             <div className="tag">{k}</div>
-            <div style={{ fontSize: 28, marginTop: 6, color: v === 'DOWN' ? 'var(--bad)' : undefined }}>{v as any}</div>
+            <div className="metric-value" style={{ color: v === 'DOWN' ? 'var(--bad)' : undefined }}>{v as any}</div>
           </div>
         ))}
       </div>
 
-      <Controls killed={s.setting('killSwitch', false)} accounts={s.accounts} />
-      <p className="lede">Mode: {process.env.PUBLISH_DRY_RUN !== 'false' ? 'Dry run — posts are simulated' : 'Live native agent'} · Worker: {ago(s.setting('workerHeartbeat', null))} · Agent: {ago(s.setting('agentHeartbeat', null))}</p>
+      <section className="card" aria-label="Launch readiness">
+        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <h2 style={{ margin: 0 }}>Launch readiness</h2>
+          <span className={`tag ${readiness.level === 'pass' ? 'auto' : readiness.level === 'fail' ? 'drop' : 'review'}`}>{readiness.level === 'pass' ? 'Ready' : readiness.level === 'fail' ? 'Blocked' : 'Needs attention'}</span>
+        </div>
+        <p className="metadata">{readiness.mode === 'dry-run' ? 'Simulation safety check' : 'Live publishing preflight'}</p>
+        <ul className="readiness-list">
+          {readiness.checks.map((check) => <li key={check.key}><span className={`tag ${check.level === 'pass' ? 'auto' : check.level === 'fail' ? 'drop' : 'review'}`}>{check.level}</span><span>{check.message}</span></li>)}
+        </ul>
+      </section>
+
+      <Controls killed={s.setting('killSwitch', false)} />
+      <dl className="kv">
+        <dt>Mode</dt><dd>{process.env.PUBLISH_DRY_RUN !== 'false' ? 'Dry run (posts are simulated)' : 'Live native agent'}</dd>
+        <dt>Worker heartbeat</dt><dd>{ago(s.setting('workerHeartbeat', null))}</dd>
+        <dt>Agent heartbeat</dt><dd>{ago(s.setting('agentHeartbeat', null))}</dd>
+      </dl>
       <h2>Source health</h2>
       <div className="card scroll">
         <table className="data">
@@ -69,7 +85,10 @@ export default async function Ops() {
         </table>
       </div>
 
-      <h2>Accounts and warm-up</h2>
+      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <h2 style={{ margin: '24px 0 10px' }}>Accounts and warm-up</h2>
+        <a href="/accounts" style={{ fontSize: 12, textDecoration: 'underline' }}>Edit handles, warm-up and caps →</a>
+      </div>
       <div className="card scroll">
         <table className="data">
           <thead><tr><th>Account</th><th>Platform</th><th>Warm-up</th><th>Today</th><th>Cap</th><th>Session</th><th>Active</th></tr></thead>
@@ -84,7 +103,7 @@ export default async function Ops() {
                   <td>stage {a.warmupStage}</td>
                   <td style={{ color: today >= a.dailyCap ? 'var(--warn)' : undefined }}>{today}</td>
                   <td>{a.dailyCap}</td>
-                  <td>{session ? (session.healthy ? <span className="tag auto">healthy</span> : <span className="tag drop">dead · {ago(session.lastCheckAt)}</span>) : <span className="tag">unchecked</span>}</td>
+                  <td>{session ? (session.healthy ? <span className="tag auto">healthy</span> : <span className="metadata"><span className="tag drop">Offline</span><span>{ago(session.lastCheckAt)}</span></span>) : <span className="tag">unchecked</span>}</td>
                   <td>{a.active ? 'yes' : 'no'}</td>
                 </tr>
               );

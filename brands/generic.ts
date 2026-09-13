@@ -1,7 +1,7 @@
 import type { Claim, Vertical } from '@newsroom/core';
 import { dateId, text } from '@newsroom/core';
 import { SKINS, type Brand, type LayoutKey, type ArtModel } from '@newsroom/design';
-import { tokens } from './f1/tokens.ts';
+import { genericTokens as tokens } from './generic-tokens.ts';
 import { blocklist, hedgeTerms } from './f1/blocklist.ts';
 const layouts: LayoutKey[][] = [ ['hero-left','hero-right','framed','big-number'], ['stacked','framed','split','hero-right'], ['portrait','hero-left','framed','stacked'], ['framed','big-number','hero-left','stacked'], ['stacked','framed','split','big-number'], ['stacked','framed','split','big-number'], ['portrait','framed','hero-left','full-bleed'] ];
 export interface VerticalConfig { key: Vertical; name: string; mark: string; archetypes: { key: string; types: string[]; label: string; required: string[] }[]; allowlist: string[] }

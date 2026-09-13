@@ -2,7 +2,7 @@ import { chromium, type BrowserContext, type Page } from 'playwright';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
-import { spawn } from 'node:child_process';
+import sharp from 'sharp';
 import { validateCaption, type Platform, type PublishAdapter, type PublishRequest, type PublishResult, type SessionHealth } from '@newsroom/core';
 
 const HOME: Record<Platform, string> = { x: 'https://x.com/home', instagram: 'https://www.instagram.com/', threads: 'https://www.threads.com/', tiktok: 'https://www.tiktok.com/tiktokstudio/upload' };
@@ -79,8 +79,13 @@ export class SocialBrowserAdapter implements PublishAdapter {
         await page.locator('input[type="file"]').first().setInputFiles(paths);
         submit = page.getByRole('button', { name: 'Post', exact: true }).last();
       } else {
-        const video = await slideshowVideo(paths, req.idempotencyKey);
-        await page.locator('input[type="file"]').setInputFiles(video);
+        // TikTok's web Studio supports native photo-mode posts (up to 35 images) —
+        // no video re-encode needed. Still upload each slide as its own 9:16 still,
+        // since the platform's feed and algorithm both expect a full vertical frame.
+        const stills = await tiktokStills(paths, req.idempotencyKey);
+        const photoTab = page.getByText('Photo', { exact: true });
+        if (await photoTab.count()) await photoTab.first().click();
+        await page.locator('input[type="file"]').first().setInputFiles(stills);
         await page.locator('[contenteditable="true"]').first().fill(req.caption);
         submit = page.getByRole('button', { name: 'Post', exact: true });
       }
@@ -93,8 +98,8 @@ export class SocialBrowserAdapter implements PublishAdapter {
       if (this.platform === 'x') await page.getByText(/Your post was sent/i).waitFor({ timeout: 60000 });
       else if (this.platform === 'instagram') await page.getByText(/Your post has been shared/i).waitFor({ timeout: 60000 });
       else if (this.platform === 'threads') await page.getByText(/Posted|Your thread was posted/i).first().waitFor({ timeout: 60000 });
-      else await page.getByText(/Your video is being uploaded|Your video has been uploaded|Manage your posts/i).first().waitFor({ timeout: 120000 });
-      const selector = this.platform === 'x' ? 'a[href*="/status/"]' : this.platform === 'instagram' ? 'a[href*="/p/"]' : this.platform === 'threads' ? 'a[href*="/post/"]' : 'a[href*="/video/"]';
+      else await page.getByText(/Your photos? (is|are) being uploaded|has been uploaded|Manage your posts/i).first().waitFor({ timeout: 60000 });
+      const selector = this.platform === 'x' ? 'a[href*="/status/"]' : this.platform === 'instagram' ? 'a[href*="/p/"]' : this.platform === 'threads' ? 'a[href*="/post/"]' : 'a[href*="/photo/"]';
       const href = await page.locator('[role="alert"], [data-testid="toast"]').locator(selector).first().getAttribute('href', { timeout: 2000 }).catch(() => null);
       const result: PublishResult = { ok: true, url: href ? new URL(href, HOME[this.platform]).href : undefined, platformPostId: href ?? undefined, latencyMs: Date.now() - start };
       writeFileSync(receipt, JSON.stringify({ result }));
@@ -107,18 +112,46 @@ export class SocialBrowserAdapter implements PublishAdapter {
     }
   }
 }
-/** TikTok web uploads video: convert the same 4:5 artwork into a silent MP4. */
-export async function slideshowVideo(images: string[], key: string): Promise<string> {
-  const dir = resolve(process.env.VIDEO_OUT_DIR ?? './.data/videos'); mkdirSync(dir, { recursive: true });
-  const file = resolve(dir, `${createHash('sha256').update(key).digest('hex')}.mp4`);
-  const args = ['-y', ...images.flatMap((p) => ['-loop', '1', '-t', '3', '-i', p])];
-  const filter = images.map((_, i) => `[${i}:v]scale=1080:1350:force_original_aspect_ratio=decrease,pad=1080:1350:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v${i}]`).join(';') + ';' + images.map((_, i) => `[v${i}]`).join('') + `concat=n=${images.length}:v=1:a=0[out]`;
-  args.push('-filter_complex', filter, '-map', '[out]', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', file);
-  await new Promise<void>((resolve, reject) => {
-    const child = spawn(process.env.FFMPEG_PATH ?? 'ffmpeg', args, { stdio: ['ignore','ignore','pipe'] });
-    let error = ''; child.stderr.on('data', (b) => { error = (error + b).slice(-3000); });
-    child.on('error', reject); child.on('exit', (code) => code === 0 ? resolve() : reject(new Error(`ffmpeg failed: ${error}`)));
-  });
-  return file;
+const TIKTOK_W = 1080;
+const TIKTOK_H = 1920;
+
+/**
+ * TikTok is 9:16, not 4:5 — the platform's feed, algorithm and viewers all
+ * expect a full vertical frame, but as of its photo-mode launch TikTok takes
+ * still images directly. (Silent-video re-encoding was a workaround for a
+ * platform limitation that no longer exists — no ffmpeg dependency needed.)
+ *
+ * Extends each 4:5 render to 1080x1920 by centering the untouched artwork
+ * over a blurred, darkened, cover-cropped copy of itself filling the rest of
+ * the frame — never stretched, and never a dead black letterbox bar.
+ */
+export async function tiktokStills(images: string[], key: string): Promise<string[]> {
+  const dir = resolve(process.env.TIKTOK_OUT_DIR ?? './.data/tiktok'); mkdirSync(dir, { recursive: true });
+  const out: string[] = [];
+  for (const image of images) {
+    const file = resolve(dir, `${createHash('sha256').update(`${key}:${image}`).digest('hex')}.png`);
+    const source = sharp(image);
+    const background = await source.clone()
+      .resize(TIKTOK_W, TIKTOK_H, { fit: 'cover' })
+      .blur(24)
+      .modulate({ brightness: 0.82 })
+      .png()
+      .toBuffer();
+    const foreground = await source.clone()
+      .resize(TIKTOK_W, TIKTOK_H, { fit: 'inside' })
+      .png()
+      .toBuffer();
+    const fgMeta = await sharp(foreground).metadata();
+    await sharp(background)
+      .composite([{
+        input: foreground,
+        left: Math.round((TIKTOK_W - (fgMeta.width ?? TIKTOK_W)) / 2),
+        top: Math.round((TIKTOK_H - (fgMeta.height ?? TIKTOK_H)) / 2),
+      }])
+      .png()
+      .toFile(file);
+    out.push(file);
+  }
+  return out;
 }
 export async function closePublishers() { for (const ctx of contexts.values()) await (await ctx).close(); contexts.clear(); }

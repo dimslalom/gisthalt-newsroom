@@ -3,6 +3,7 @@ import type { Claim } from '@newsroom/core';
 import type { Archetype, ArtModel, TableRow } from '@newsroom/design';
 import { resolveEntity } from '../entities.ts';
 import { meetingId, sessionId } from '../locale.id.ts';
+import { RACE_RED } from '../skins.ts';
 
 const s = (v: unknown): string => text(v == null ? null : String(v));
 const n = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
@@ -126,7 +127,10 @@ export const archetypes: Archetype[] = [
         headline: s(claim.entities.driver),
         subhead: s(claim.values.reason) !== DASH ? s(claim.values.reason) : undefined,
         footnote: footer(claim),
-        entity: resolveEntity(claim.entities.team ?? null),
+        // Race Red, fixed: "red flags, penalties, DNFs, breaking paddock
+        // alerts" is a semantic colour in this brand, not a team colour —
+        // a steward's decision reads as an alert regardless of who it's about.
+        entity: RACE_RED,
         imageUrl: claim.imageUrl ?? null,
       };
     },

@@ -2,6 +2,7 @@ import type { Ctx } from './context.ts';
 import { accountForClaim } from './review.ts';
 import { claimOf } from './stages/gate.ts';
 import { composeClaim } from './stages/compose.ts';
+import { brandForVertical } from '@newsroom/brands';
 export async function createCarousel(ctx: Ctx, claimIds: string[]) {
   if (!Array.isArray(claimIds) || claimIds.length < 2 || claimIds.length > 6 || new Set(claimIds).size !== claimIds.length) throw new Error('select 2–6 distinct claims');
   const rows = claimIds.map((id) => { const c = ctx.store.getClaim(id); if (!c) throw new Error('claim not found'); return c; });
@@ -9,7 +10,7 @@ export async function createCarousel(ctx: Ctx, claimIds: string[]) {
   if (rows.some((r) => ctx.store.decisions.filter((d) => d.claimId === r.id).at(-1)?.outcome === 'drop')) throw new Error('blocked claims cannot enter a carousel');
   const accountId = accountForClaim(ctx, rows[0]!.id);
   const response = await fetch(`${process.env.RENDERER_URL ?? 'http://127.0.0.1:8787'}/carousel`, {
-    method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({brand:ctx.store.getAccount(accountId)!.brand,claims:rows.map(claimOf)}), signal:AbortSignal.timeout(180000),
+    method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({brand:brandForVertical(rows[0]!.vertical).key,claims:rows.map(claimOf)}), signal:AbortSignal.timeout(180000),
   });
   if (!response.ok) throw new Error(await response.text());
   const out = await response.json() as { images: { path: string }[]; skin: string };

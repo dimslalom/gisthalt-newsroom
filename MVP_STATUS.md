@@ -13,7 +13,7 @@ The original PLAN.md remains unchanged as the project specification. This docume
 | Model routing | Configurable role/budget ladder, persisted minute/day usage, cached extraction/copy, malformed/quota fallback, zero model calls for structured A data |
 | Design | Three configurable brands, seven archetypes/four layouts each, five skins, 22 accent sets, shuffle history, contrast/image/logo/headline guards, pinned multilingual fonts |
 | Certification | 11 adversarial fixtures, 924 Linux base-skin golden images, pixel-difference checks, missing/stale certification refused by composer |
-| Dashboard | All-brand Lab, complete paginated variant rendering, contact sheet/profile grid, review actions and per-platform caption editing, carousel builder, Ops controls and reconciliation |
+| Dashboard | All-brand Lab, complete paginated variant rendering, contact sheet/profile grid, review actions and per-platform caption editing, carousel builder, Ops controls, reconciliation, and a machine-readable live-launch preflight |
 | Review | Preview before approval, terminal/idempotent transitions, held-source release gated by R3, Discord owner buttons/modal and alerts, manual retraction workflow |
 | Publishing | Four adapter implementations, explicit dry-run status, cap/warm-up/jitter/quiet-hour checks, kill switch, committed reservation before external effects, durable uncertain-submission receipts, local archive |
 | Windows | Native headed Chrome profiles, session health checks/screenshots, agent heartbeat, optional interactive at-login task scripts |
@@ -21,7 +21,7 @@ The original PLAN.md remains unchanged as the project specification. This docume
 
 ## External acceptance still required
 
-- **Live publishing:** X, Instagram, Threads and TikTok selectors/submission are implemented but have not been exercised against logged-in owner accounts. Manual login, platform checkpoints and a controlled first post per platform remain necessary. TikTok uses ffmpeg MP4 output; it does not upload a native photo-mode carousel.
+- **Live publishing:** X, Instagram, Threads and TikTok selectors/submission are implemented but have not been exercised against logged-in owner accounts. Manual login, platform checkpoints and a controlled first post per platform remain necessary. TikTok uploads native photo-mode stills (each render extended to 1080x1920 with a blurred cover-crop background, never stretched or letterboxed) — no ffmpeg dependency, no video re-encode.
 - **Discord/Gemini/TMDB:** credential-dependent live runs require the owner's configured keys/channel IDs. No actual Discord messages or social posts were sent as part of this work.
 - **Windows uptime:** the native scripts were authored on macOS, not executed on a Windows machine. Sleep/power/network settings and Task Scheduler acceptance require that host.
 - **Fresh-event latency:** OpenF1 latency measurement tooling is included, but the planned live session-end-to-result observation and sub-60-second publication target are not certified by recorded fixtures.

@@ -5,3 +5,4 @@ renders/
 .next/
 *.tsbuildinfo
 .env
+.DS_Store

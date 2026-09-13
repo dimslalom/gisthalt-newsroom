@@ -1,7 +1,7 @@
 import { pickBest, seedFrom, type Candidate, type HistoryEntry } from '@newsroom/core';
 import type { Claim } from '@newsroom/core';
 import { ContrastError, assertContrast } from './guards/contrast.ts';
-import { accentSets, LONG_HEADLINE, SKINS, TYPOGRAPHY_ONLY } from './skins.ts';
+import { accentSets, LONG_HEADLINE, TYPOGRAPHY_ONLY } from './skins.ts';
 import { isLayoutShippable } from './passing.ts';
 import { resolveColours } from './template.ts';
 import type { Brand, CompositionSpec, LayoutKey, Skin } from './types.ts';
@@ -37,7 +37,7 @@ export function compose(input: ComposeInput): CompositionSpec & { seed: number }
   const archetype = chooseArchetype(brand, claim.claimType);
   const model = archetype.model(claim);
 
-  let layouts = input.allowUncertified ? [...archetype.layouts] : archetype.layouts.filter((l) => isLayoutShippable(archetype.key, l));
+  let layouts = input.allowUncertified ? [...archetype.layouts] : archetype.layouts.filter((l) => isLayoutShippable(brand.key, archetype.key, l));
   if (layouts.length === 0) throw new Error(`no certified layout for ${brand.key}/${archetype.key}; run the full golden matrix`);
   // image-missing must fall back to a typography-only variant, never a grey box.
   if (!hasImage) {
@@ -77,7 +77,11 @@ export function compose(input: ComposeInput): CompositionSpec & { seed: number }
 
   const seed = seedFrom(`${claim.claimType}:${model.headline}`, input.reshuffle ?? 0);
   const picked = pickBest(candidates, history, seed);
-  const skin = SKINS.find((s) => s.key === picked.skin) as Skin;
+  // Look the skin back up from THIS brand's own set, never the shared global
+  // list — two brands can both declare a 'dark' key with entirely different
+  // colours, and the wrong one silently substituting back in here would
+  // undo every bit of per-brand identity the candidate loop just verified.
+  const skin = skins.find((s) => s.key === picked.skin) as Skin;
 
   return {
     brand,
@@ -95,7 +99,7 @@ export function enumerateVariants(brand: Brand, archetypeKey: string): { layout:
   const a = brand.archetypes.find((x) => x.key === archetypeKey);
   if (!a) return [];
   const out: { layout: LayoutKey; skin: string; accents: string[] }[] = [];
-  for (const layout of a.layouts) for (const skin of SKINS) for (const accents of accentSets()) {
+  for (const layout of a.layouts) for (const skin of brand.skins) for (const accents of accentSets()) {
     out.push({ layout, skin: skin.key, accents });
   }
   return out;

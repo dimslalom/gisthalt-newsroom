@@ -8,6 +8,7 @@ import { composeClaim, PLATFORMS } from './stages/compose.ts';
 import { enqueuePost } from './stages/publish.ts';
 import { accountForClaim, prepareReview, releaseHeldIfCorroborated } from './review.ts';
 import { seedAccounts } from './seed.ts';
+import { workspaceBrand } from '@newsroom/brands';
 
 export async function startWorkers() {
   if (!process.env.DATABASE_URL) throw new Error('workers require DATABASE_URL; use pnpm pipeline tick for file mode');
@@ -69,7 +70,7 @@ export async function startWorkers() {
         items: ctx.store.items.filter((i) => !ctx.store.extractions.some((e) => e.itemId === i.id)).map((i) => i.id),
         claims: ctx.store.claims.filter((c) => !ctx.store.decisions.some((d) => d.claimId === c.id)).map((c) => c.id),
         autos: ctx.store.claims.filter((c) => ctx.store.decisions.filter((d) => d.claimId === c.id).at(-1)?.outcome === 'auto' &&
-          ctx.store.accounts.some(a=>a.brand===c.vertical&&a.active&&!ctx.store.posts.some(p=>p.accountId===a.id&&ctx.store.getComposition(p.compositionId)?.claimId===c.id))).map((c) => c.id),
+          ctx.store.accounts.some(a=>workspaceBrand(ctx.store,a.brand).vertical===c.vertical&&a.active&&!ctx.store.posts.some(p=>p.accountId===a.id&&ctx.store.getComposition(p.compositionId)?.claimId===c.id))).map((c) => c.id),
         reviews: ctx.store.pendingReviews(now).filter((r) => !r.compositionId).map((r) => r.id),
       };
     });

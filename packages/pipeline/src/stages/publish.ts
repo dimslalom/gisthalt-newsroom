@@ -3,14 +3,16 @@ import { adapterFor, archivePost, checkPacing, defaultPacing, jitterMs } from '@
 import type { CompositionRow, PostRow } from '@newsroom/db';
 import type { Ctx } from '../context.ts';
 import { withCtx } from '../context.ts';
+import { workspaceBrand, platformsForBrand } from '@newsroom/brands';
 
 export interface EnqueueSummary { queued: number; skipped: { platform: string; reason: string }[] }
 export function enqueuePost(ctx: Ctx, comp: CompositionRow, platforms: Platform[]): EnqueueSummary {
   if (!comp.renderedAt || !comp.imagePaths.length) throw new Error('composition has not rendered successfully');
   const brand = ctx.store.getAccount(comp.accountId)?.brand;
+  if (!brand || workspaceBrand(ctx.store, brand).vertical !== ctx.store.getClaim(comp.claimId)?.vertical) throw new Error('composition no longer matches brand content type');
   const out: EnqueueSummary = { queued: 0, skipped: [] };
   for (const platform of platforms) {
-    const account = ctx.store.accounts.find((a) => a.brand === brand && a.platform === platform && a.active);
+    const account = ctx.store.accounts.find((a) => a.brand === brand && a.platform === platform && a.active && platformsForBrand(ctx.store, brand).includes(platform));
     if (!account) { out.skipped.push({ platform, reason: `no active ${platform} account` }); continue; }
     validateCaption(comp.captionByPlatform[platform] ?? '', platform);
     // Reshuffling is visual, not a new publication of the same fact.
@@ -44,6 +46,7 @@ export function reservePost(ctx: Ctx): { job: PostRow; request: PublishRequest }
       job.scheduledFor = new Date(latest.publishedAt.getTime() + interval); continue;
     }
     const comp = ctx.store.getComposition(job.compositionId);
+    if (!platformsForBrand(ctx.store, account.brand).includes(account.platform) || (comp && workspaceBrand(ctx.store, account.brand).vertical !== ctx.store.getClaim(comp.claimId)?.vertical)) { job.status = 'cancelled'; job.error = 'brand or platform configuration changed'; continue; }
     if (comp && process.env.PUBLISH_DRY_RUN === 'false' && ctx.store.getClaim(comp.claimId)?.tags.includes('demo')) { job.status='cancelled';job.error='demo data cannot publish live';continue; }
     if (!comp?.renderedAt || !comp.imagePaths.length) { job.status = 'failed'; job.error = 'render missing'; continue; }
     job.status = 'publishing'; job.error = null;
@@ -71,8 +74,35 @@ export async function publishNext(): Promise<{ published: boolean; detail: strin
   const sourceUrl = await withCtx(ctx=>{const comp=ctx.store.getComposition(job.compositionId);const claim=comp?ctx.store.getClaim(comp.claimId):undefined;return claim?ctx.store.getItem(claim.itemId)?.rawUrl??null:null;});
   const dryRun = process.env.PUBLISH_DRY_RUN !== 'false';
   let result: PublishResult;
-  try { result = await adapterFor(job.platform).publish(request); }
-  catch (e) { result = { ok: false, uncertain: true, error: (e as Error).message, latencyMs: 0 }; }
+  const adapter = adapterFor(job.platform);
+  // The background monitor is useful observability, but it is not a sufficient
+  // safety check for an irreversible action. Revalidate the exact persistent
+  // Chrome profile immediately before every live click. A failure here is
+  // definitely pre-submit, so it is safe to mark failed rather than uncertain.
+  if (!dryRun) {
+    try {
+      const health = await adapter.checkSession(job.accountId);
+      await withCtx((ctx) => {
+        const previous = ctx.store.sessions.find((session) => session.accountId === job.accountId);
+        ctx.store.upsertSession({ accountId: job.accountId, lastOkAt: health.healthy ? health.checkedAt : previous?.lastOkAt ?? null, lastCheckAt: health.checkedAt, healthy: health.healthy, lastScreenshotPath: health.screenshotPath ?? null });
+        if (!health.healthy) ctx.store.log({ stage: 'session', level: 'error', msg: 'pre-publish login check failed', dedupeHash: null, latencyMs: null, meta: { accountId: job.accountId, platform: job.platform, detail: health.detail } });
+      });
+      if (!health.healthy) {
+        const detail = `pre-publish session check failed: ${health.detail ?? 'manual login required'}`;
+        result = { ok: false, uncertain: false, error: detail, latencyMs: 0 };
+        await withCtx((ctx) => finishPost(ctx, job.id, result, dryRun, null));
+        return { published: false, detail };
+      }
+    } catch (e) {
+      const detail = `pre-publish session check errored: ${(e as Error).message}`;
+      result = { ok: false, uncertain: false, error: detail, latencyMs: 0 };
+      await withCtx((ctx) => finishPost(ctx, job.id, result, dryRun, null));
+      return { published: false, detail };
+    }
+  }
+  try {
+    result = await adapter.publish(request);
+  } catch (e) { result = { ok: false, uncertain: true, error: (e as Error).message, latencyMs: 0 }; }
   let archive: string | null = null;
   if (result.ok) {
     try { archive = archivePost({ ...request, compositionId: job.compositionId, sourceUrl, platformPostId: result.platformPostId ?? null, publishedAt: new Date() }); }

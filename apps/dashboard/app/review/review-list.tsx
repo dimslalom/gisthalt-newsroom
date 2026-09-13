@@ -6,7 +6,7 @@ const LIMITS: Record<string, number> = { x: 280, instagram: 2200, threads: 500, 
 
 export interface ReviewItem {
   id: string; rule: string; reason: string; state: string; expiresInMinutes: number;
-  headline: string; claimType: string; tier: string; domain: string; sourceUrl: string | null;
+  headline: string; vertical: string | null; claimType: string; tier: string; domain: string; sourceUrl: string | null;
   quote: string | null; quoteNote: string | null;
   entities: Record<string, string>; values: Record<string, unknown>;
   captions: Record<string, string> | null; compositionId: string | null; imageUrl: string | null; images: string[];
@@ -32,8 +32,7 @@ export function ReviewList({ items }: { items: ReviewItem[] }) {
     return (
       <>
         <h1>Review queue</h1>
-        <div className="empty">Nothing pending. Items expire after 90 minutes and auto-reject —
-          a stale queue looks busy without being busy.</div>
+        <div className="empty">Nothing pending. Reviews expire and are rejected after 90 minutes.</div>
       </>
     );
   }
@@ -59,13 +58,13 @@ export function ReviewList({ items }: { items: ReviewItem[] }) {
               </span>
             </div>
 
-            {it.images.length > 0 && <div style={{display:"flex",gap:8,overflowX:"auto"}}>{it.images.map((src,i)=><img key={src} src={src} alt={`${it.headline} — slide ${i+1}`} style={{width:216,height:270,objectFit:"contain",marginTop:12}} />)}</div>}
+            {it.images.length > 0 && <div style={{display:"flex",gap:8,overflowX:"auto"}}>{it.images.map((src,i)=><img key={src} src={src} alt={`${it.headline}; slide ${i+1}`} style={{width:216,height:270,objectFit:"contain",marginTop:12}} />)}</div>}
             <h3 style={{ margin: '10px 0 4px', fontSize: 18 }}>{it.headline}</h3>
-            <div style={{ color: 'var(--muted)', fontSize: 12 }}>
-              {it.domain}{it.sourceUrl && <> · <a href={it.sourceUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>source</a></>} · {it.reason}
+            <div className="metadata">
+              <span>{it.domain}</span>{it.sourceUrl && <a href={it.sourceUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>Source</a>}<span>{it.reason}</span>
             </div>
 
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 12 }}>
+            <div className="review-details">
               <div>
                 <div className="tag">supporting quote</div>
                 <div style={{ marginTop: 6, fontSize: 13, color: it.quote ? undefined : 'var(--warn)' }}>
@@ -81,10 +80,10 @@ export function ReviewList({ items }: { items: ReviewItem[] }) {
             </div>
 
             {it.captions && (
-              <div className="grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginTop: 12 }}>
+              <div className="caption-grid">
                 {Object.entries(it.captions).map(([platform, caption]) => (
                   <label className="field" key={platform}>
-                    {platform} · {caption.length}/{LIMITS[platform] ?? 2200}
+                    <span className="metadata"><span>{platform}</span><span>{caption.length}/{LIMITS[platform] ?? 2200}</span></span>
                     <textarea defaultValue={caption} rows={4}
                       onBlur={(e) => act('caption', { compositionId: it.compositionId, platform, caption: e.target.value })} />
                   </label>
@@ -94,6 +93,7 @@ export function ReviewList({ items }: { items: ReviewItem[] }) {
 
             <div className="row" style={{ marginTop: 12 }}>
               <button className="primary" disabled={busy !== null} onClick={() => act('approve', { reviewId: it.id })}>Publish</button>
+              {it.vertical === 'f1' && <button disabled={busy !== null || it.claimType === 'demo'} onClick={() => act('launch_f1', { reviewId: it.id })}>Launch X + Instagram + TikTok</button>}
               <button disabled={busy !== null} onClick={() => act('reshuffle', { reviewId: it.id })}>Reshuffle design</button>
               <button disabled={busy !== null} onClick={() => act('hold', { reviewId: it.id })}>Hold for second source</button>
               <button className="danger" disabled={busy !== null} onClick={() => act('reject', { reviewId: it.id })}>Reject</button>

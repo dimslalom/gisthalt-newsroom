@@ -1,0 +1,311 @@
+{
+  "session_result": {
+    "hero-left": {
+      "version": 1,
+      "id": "hero-left",
+      "name": "Hero left",
+      "canvas": "portrait-4x5",
+      "root": {
+        "id": "hero-left-root",
+        "name": "Canvas",
+        "background": {
+          "type": "solid",
+          "colour": {
+            "ref": "bg"
+          }
+        },
+        "padding": {
+          "top": 8,
+          "right": 8,
+          "bottom": 8,
+          "left": 8
+        },
+        "kind": "frame",
+        "axis": "vertical",
+        "gap": 3,
+        "align": "stretch",
+        "justify": "between",
+        "children": [
+          {
+            "id": "hero-left-photo",
+            "name": "Photo",
+            "position": {
+              "mode": "absolute",
+              "top": 0,
+              "left": 0,
+              "width": 1,
+              "height": 1
+            },
+            "kind": "image",
+            "source": {
+              "type": "field",
+              "field": "imageUrl"
+            },
+            "fit": "cover",
+            "focal": {
+              "x": 0.5,
+              "y": 0.35
+            },
+            "treatment": "none",
+            "scrim": true
+          },
+          {
+            "id": "hero-left-hdr",
+            "name": "Header",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 2,
+            "align": "center",
+            "justify": "between",
+            "children": [
+              {
+                "id": "hero-left-eyebrow",
+                "name": "Eyebrow",
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "eyebrow"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "lab",
+                "colour": {
+                  "ref": "accent-text"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 500
+              },
+              {
+                "id": "hero-left-logo",
+                "name": "Logo",
+                "kind": "logo",
+                "variant": "auto"
+              }
+            ]
+          },
+          {
+            "id": "hero-left-body",
+            "name": "Body",
+            "height": {
+              "mode": "fill"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 2.5,
+            "align": "start",
+            "justify": "end",
+            "children": [
+              {
+                "id": "hero-left-quote",
+                "name": "Quote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "quote"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 600
+              },
+              {
+                "id": "hero-left-headline",
+                "name": "Headline",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "headline"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "fit",
+                "fit": {
+                  "minPx": 34,
+                  "maxPx": 118,
+                  "lines": 3
+                },
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 700
+              },
+              {
+                "id": "hero-left-subhead",
+                "name": "Subhead",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "subhead"
+                },
+                "font": {
+                  "token": "body"
+                },
+                "step": "body",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 400,
+                "maxLines": 4
+              },
+              {
+                "id": "hero-left-attrib",
+                "name": "Attribution",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "attribution"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              },
+              {
+                "id": "hero-left-rows",
+                "name": "Table",
+                "kind": "rows",
+                "source": {
+                  "type": "field",
+                  "field": "rows"
+                },
+                "density": "auto",
+                "columns": [
+                  "rank",
+                  "chip",
+                  "primary",
+                  "secondary",
+                  "value",
+                  "trailing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "hero-left-foot",
+            "name": "Footer",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 1,
+            "align": "end",
+            "justify": "between",
+            "children": [
+              {
+                "id": "hero-left-footnote",
+                "name": "Footnote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "footnote"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,5 +1,6 @@
 export * from './http.ts';
 export * from './openf1.ts';
+export * from './blacktop.ts';
 export * from './jolpica.ts';
 export * from './rss.ts';
 export * from './reddit.ts';

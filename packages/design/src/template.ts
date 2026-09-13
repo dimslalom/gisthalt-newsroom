@@ -1,4 +1,5 @@
 import { assertContrast, onColourFor, contrastRatio, type ResolvedPair } from './guards/contrast.ts';
+import { getLayoutOverride } from './overrides.ts';
 import type { CompositionSpec, TableRow } from './types.ts';
 
 const esc = (s: string): string =>
@@ -14,7 +15,7 @@ export const CANVAS = { width: 1080, height: 1350 } as const;
 export function resolveColours(spec: CompositionSpec): { vars: Record<string, string>; pairs: ResolvedPair[] } {
   const { skin, model } = spec;
   const entity = skin.usesEntityColour ? model.entity : null;
-  const accent = entity?.hex ?? (skin.key === 'archival' ? '#B4553A' : '#E4E9EB');
+  const accent = entity?.hex ?? skin.fallbackAccent ?? (skin.key === 'archival' ? '#B4553A' : '#E4E9EB');
   const onAccent = onColourFor(accent);
   const accentText = contrastRatio(accent, skin.bg) >= 4.5 ? accent : skin.fg;
   const muted = contrastRatio(skin.muted, skin.bg) >= 4.5 && contrastRatio(skin.muted, skin.panel) >= 4.5 ? skin.muted : skin.fg;
@@ -74,6 +75,8 @@ const BASE_CSS = String.raw`
 .eyebrow{color:var(--accent-text)}
 .logo{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lab);letter-spacing:.18em;text-transform:uppercase;color:var(--fg)}
 .logo .mark{color:var(--accent-text)}
+.logo-svg{width:calc(var(--fs-lab) * 1.9);height:calc(var(--fs-lab) * 1.9);line-height:0}
+.logo-svg svg{width:100%;height:100%;display:block}
 .foot{display:flex;justify-content:space-between;align-items:end;gap:var(--u);color:var(--muted);font-size:var(--fs-fine)}
 .rule{height:var(--stroke);background:var(--accent);width:120px}
 
@@ -210,25 +213,52 @@ export interface TemplateOptions {
 
 /** Turns a fully-resolved CompositionSpec into one self-contained HTML document. */
 export function renderArtHtml(spec: CompositionSpec, opts: TemplateOptions = {}): string {
-  const { brand, model, skin, layout, accents } = spec;
+  const { brand, archetype, model, skin, layout, accents } = spec;
   const { vars, pairs } = resolveColours(spec);
   assertContrast(pairs); // fails the render rather than shipping something unreadable
 
   const t = brand.tokens;
   const hasPhoto = Boolean(opts.imageSrc) && skin.imagery !== 'none';
   const logo = spec.logoPlacement ?? 'tr';
+  // A visual editor's saved adjustments for this exact archetype+layout, if any.
+  const override = getLayoutOverride(brand.key, archetype.key, layout);
+
+  /**
+   * Every element the editor can select is tagged and, if it has a saved
+   * transform, nudged by it — translate + uniform scale from its own
+   * Grid/Flex-computed position, growing from its top-left corner. Content
+   * still flows and fits normally underneath: the transform is a final
+   * compositing step layered on top, exactly like moving a layer on a design
+   * canvas, so the guards above (fitText, contrast) still reason about the
+   * real, untransformed box.
+   */
+  const el = (name: string, extraStyle = ''): string => {
+    const tr = override.elements?.[name];
+    const transform = tr && (tr.x || tr.y || (tr.scale && tr.scale !== 1))
+      ? `transform:translate(${tr.x ?? 0}px,${tr.y ?? 0}px) scale(${tr.scale ?? 1});transform-origin:top left;`
+      : '';
+    const style = `${transform}${extraStyle}`;
+    return ` data-el="${name}"${style ? ` style="${style}"` : ''}`;
+  };
 
   const tokenVars = {
     '--fs-mega': `${t.fs.mega}px`, '--fs-hero': `${t.fs.hero}px`, '--fs-h1': `${t.fs.h1}px`,
     '--fs-h2': `${t.fs.h2}px`, '--fs-body': `${t.fs.body}px`, '--fs-lab': `${t.fs.lab}px`,
     '--fs-fine': `${t.fs.fine}px`, '--ls-lab': t.ls.lab, '--ls-disp': t.ls.disp,
-    '--pad': `${t.pad}px`, '--stroke': `${t.stroke}px`, '--u': `${t.unit}px`, '--r': `${t.radius}px`,
+    '--pad': `${override.padding ?? t.pad}px`, '--stroke': `${t.stroke}px`,
+    '--u': `${override.spacingUnit ?? t.unit}px`, '--r': `${t.radius}px`,
     '--font-display': t.fonts.display, '--font-body': t.fonts.body, '--font-mono': t.fonts.mono,
     ...vars,
   };
   const rootVars = Object.entries(tokenVars).map(([k, v]) => `${k}:${v}`).join(';');
+  const bodyStyle = [
+    override.bodyAlign ? `align-content:${override.bodyAlign}` : '',
+    override.textAlign ? `text-align:${override.textAlign}` : '',
+  ].filter(Boolean).join(';');
 
-  const logoMarkup = `<div class="logo"><span class="mark">${esc(t.logo.mark)}</span> ${esc(t.logo.text)}</div>`;
+  const logoMarkup = t.logo.svgMarkup
+    ? `<div class="logo logo-svg"${el('logo')}>${t.logo.svgMarkup}</div>`
+    : `<div class="logo"${el('logo')}><span class="mark">${esc(t.logo.mark)}</span> ${esc(t.logo.text)}</div>`;
 
   const accentMarkup = accents.map((a) => {
     if (a === 'ticker') {
@@ -243,13 +273,13 @@ export function renderArtHtml(spec: CompositionSpec, opts: TemplateOptions = {})
   }).join('');
 
   const bodyBlocks = [
-    model.bigNumber ? `<div class="bignum num">${esc(model.bigNumber)}</div>` : '',
-    model.bigLabel ? `<div class="lab biglabel">${esc(model.bigLabel)}</div>` : '',
-    model.quote ? `<blockquote>${esc(model.quote)}</blockquote>` : '',
-    `<h1 class="disp headline" data-fit="${opts.noFit ? '' : '1'}" data-fit-min="34" data-fit-max="${t.fs.hero}" data-fit-lines="3">${esc(model.headline)}</h1>`,
-    model.subhead ? `<p class="sub">${esc(model.subhead)}</p>` : '',
-    model.attribution ? `<p class="attrib lab">${esc(model.attribution)}</p>` : '',
-    model.rows?.length ? rowsHtml(model.rows) : '',
+    model.bigNumber ? `<div class="bignum num"${el('bignum')}>${esc(model.bigNumber)}</div>` : '',
+    model.bigLabel ? `<div class="lab biglabel"${el('biglabel')}>${esc(model.bigLabel)}</div>` : '',
+    model.quote ? `<blockquote${el('quote')}>${esc(model.quote)}</blockquote>` : '',
+    `<h1 class="disp headline" data-fit="${opts.noFit ? '' : '1'}" data-fit-min="${override.headlineMinPx ?? 34}" data-fit-max="${override.headlineMaxPx ?? t.fs.hero}" data-fit-lines="3"${el('headline')}>${esc(model.headline)}</h1>`,
+    model.subhead ? `<p class="sub"${el('subhead')}>${esc(model.subhead)}</p>` : '',
+    model.attribution ? `<p class="attrib lab"${el('attribution')}>${esc(model.attribution)}</p>` : '',
+    model.rows?.length ? `<div${el('rows')}>${rowsHtml(model.rows)}</div>` : '',
   ].filter(Boolean).join('\n      ');
 
   const classes = [
@@ -265,19 +295,19 @@ ${opts.fontsCss ?? ''}
 ${BASE_CSS}
 </style></head><body style="margin:0;background:#202428">
 <div class="${classes}" style="${rootVars}">
-  ${hasPhoto ? `<div class="bed ${skin.imagery === 'duotone' ? 'duotone' : ''}"><img src="${esc(opts.imageSrc!)}" alt=""></div><div class="scrim"></div>` : ''}
+  ${hasPhoto ? `<div class="bed ${skin.imagery === 'duotone' ? 'duotone' : ''}"${el('photo')}><img src="${esc(opts.imageSrc!)}" alt=""></div><div class="scrim"></div>` : ''}
   ${accentMarkup}
   ${logo === 'strip' ? `<div class="logostrip">${logoMarkup}<span class="lab">${esc(model.eyebrow)}</span></div>` : ''}
   <div class="layer">
     <header class="hdr">
-      <span class="lab eyebrow">${esc(model.eyebrow)}</span>
+      <span class="lab eyebrow"${el('eyebrow')}>${esc(model.eyebrow)}</span>
       ${logoMarkup}
     </header>
-    <main class="body">
+    <main class="body"${bodyStyle ? ` style="${bodyStyle}"` : ''}>
       ${bodyBlocks}
     </main>
     <footer class="foot">
-      <span class="lab">${esc(model.footnote)}</span>
+      <span class="lab"${el('footnote')}>${esc(model.footnote)}</span>
       <span class="rule"></span>
     </footer>
   </div>

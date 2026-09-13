@@ -7,7 +7,15 @@ export interface Tokens {
   pad: number; stroke: number; unit: number; radius: number;
   fonts: { display: string; body: string; mono: string };
   safeMargin: number;
-  logo: { text: string; mark: string };
+  logo: {
+    text: string;
+    mark: string;
+    /** Raw inline SVG markup for the real brand mark, baked into the token file
+     *  so no runtime asset fetch is ever needed. Rendered in place of the text
+     *  mark when set; `text`/`mark` still back the ticker and other text-only
+     *  contexts. */
+    svgMarkup?: string;
+  };
 }
 
 export type SkinKey = 'dark' | 'light' | 'team' | 'tournament' | 'archival';
@@ -20,6 +28,10 @@ export interface Skin {
   usesEntityColour: boolean;
   /** Preferred image treatment: skins without imagery read as typography-only. */
   imagery: 'photo' | 'none' | 'duotone';
+  /** --accent when there's no entity colour to inject (usesEntityColour: false,
+   *  or no entity on this claim). Each skin owns its own — a brand's primary
+   *  accent colour, not a hardcoded generic grey. */
+  fallbackAccent?: string;
 }
 
 export interface EntityColour {
@@ -83,6 +95,10 @@ export interface Brand {
   requiredFields: Record<string, string[]>;
   /** Indonesian copy templates, used when no model call is made. */
   copy: Record<string, (m: ArtModel, claim: Claim) => string>;
+  /** Persona, tone and lexicon rules appended to the Gemini caption prompt.
+   *  Tier A claims never reach the model at all, so this only governs the
+   *  minority of posts that need real phrasing, not the majority template path. */
+  voiceGuide?: string;
 }
 
 export interface CompositionSpec {
@@ -95,4 +111,8 @@ export interface CompositionSpec {
   /** Resolved by the guards before the HTML is built. */
   logoPlacement?: 'tl' | 'tr' | 'bl' | 'br' | 'strip';
   textTreatment?: { scrim: number; colour: string; overImage: boolean };
+  /** Which of the document's own palette variants to resolve raw colour
+   *  references against. Only meaningful for a doc-backed layout that
+   *  declares a palette; ignored otherwise. Defaults to the first variant. */
+  paletteVariant?: string;
 }

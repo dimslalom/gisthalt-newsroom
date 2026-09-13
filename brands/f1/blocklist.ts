@@ -5,6 +5,13 @@
 export const blocklist: string[] = [
   'kecelakaan fatal', 'fatal crash', 'died', 'death', 'meninggal', 'passed away',
   'injury', 'cedera', 'hospitalised', 'hospitalized', 'airlifted',
+  // Safety Incident Protocol: any red-flag incident involving medical
+  // attention, major barrier damage, or driver distress holds automatically
+  // until race control confirms an official condition update.
+  'medical attention', 'perhatian medis', 'medical car', 'mobil medis',
+  'barrier damage', 'kerusakan barrier', 'unresponsive', 'unconscious',
+  'tidak sadarkan diri', 'distress', 'red flag', 'bendera merah',
+  'extracted from the car', 'dievakuasi dari mobil', 'stretcher', 'tandu',
   'under investigation by police', 'lawsuit', 'court', 'charged with',
   'arrested', 'allegation', 'assault', 'abuse',
   'minor', 'underage', 'di bawah umur',
