@@ -194,8 +194,7 @@
       width: 124%;
       height: 124%;
       object-fit: cover;
-      filter: contrast(1.12) brightness(.88);
-      transform: translate3d(4%, 4%, 0) scale(1.08);
+      object-position: center;
     }
 
     .s3-mark {
@@ -273,7 +272,6 @@
       html.has-js .logo-rest { animation: none; opacity: 1; }
       .brand-takeover { min-height: 100vh; }
       .brand-stage { position: relative; min-height: 100%; }
-      .track-image { transform: scale(1.08); }
       .s3-mark { opacity: 1; transform: translate(-50%, -50%); }
       .brand-content { opacity: 1; }
       .brand-content { transform: none; }
@@ -307,7 +305,9 @@
 
   <section class="brand-takeover" aria-labelledby="sektortiga-title">
     <div class="brand-stage">
-      <img class="track-image" src="assets/sektortiga-bg-1920.webp" alt="formula 1 cars racing around a circuit corner.">
+      <video class="track-image" autoplay muted loop playsinline preload="metadata" poster="assets/sektortiga-bg-1920.webp" aria-hidden="true">
+        <source src="assets/sektortiga-track.mp4" type="video/mp4">
+      </video>
       <img class="s3-mark" src="assets/s3-logo.png" alt="sektor tiga logo">
       <div class="brand-content">
         <h2 id="sektortiga-title">sektor tiga</h2>

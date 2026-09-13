@@ -61,8 +61,8 @@ export const jolpica: SourceAdapter = {
         sourceDomain: 'api.jolpi.ca',
         rawUrl: `${BASE}/current/${kind}/`,
         title: kind === 'driverstandings'
-          ? `Klasemen Pembalap ${list.season} — Ronde ${list.round}`
-          : `Klasemen Konstruktor ${list.season} — Ronde ${list.round}`,
+          ? `Klasemen Pembalap ${list.season}, Ronde ${list.round}`
+          : `Klasemen Konstruktor ${list.season}, Ronde ${list.round}`,
         body: '',
         observedAt: ctx.now,
         payload: {

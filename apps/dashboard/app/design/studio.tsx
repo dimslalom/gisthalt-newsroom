@@ -4,6 +4,7 @@ import { useWidth } from '../use-width';
 import { LayersPanel, Inspector } from './panels.tsx';
 import { ThemePanel } from './theme-panel.tsx';
 import { CertifyButton } from './certify-button.tsx';
+import { ReferencePreview } from './reference-preview.tsx';
 import {
   blankNode, findNode, findParent, flatten, insertNode, removeNode, reorderNode, updateNode,
   type CanvasDef, type FieldDef, type FrameNode, type LayoutDoc, type LayoutNode, type NodeKind,
@@ -178,6 +179,7 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
+      <ReferencePreview brand={brand} archetype={archetype} layout={layout} />
       <div className="card">
         <div className="row">
           <label className="field">Brand

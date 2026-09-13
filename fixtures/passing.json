@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-13T02:36:02.805Z",
+  "generatedAt": "2026-09-13T04:37:39.655Z",
   "runtime": "linux",
   "fixtures": [
     "classification-basic",
@@ -17,115 +17,115 @@
   "shared": "712274b1336ce6f3c095feddec32806fdad82f7db54f93c2ae346062b9051929",
   "layouts": {
     "f1/session_result/hero-left": {
-      "fp": "fcccc0cbc7ba57c67a28ed1b7ef46397aa316ba54941ed535c99c1ccd6290403",
+      "fp": "f96880be63248b044fcf26bb09d7eccd347f807f1333f6411e243ac791787cbf",
       "ok": true
     },
     "f1/session_result/full-bleed": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/session_result/big-number": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/session_result/portrait": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/classification/stacked": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/classification/framed": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/classification/split": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/classification/hero-right": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/standings/stacked": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/standings/framed": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/standings/big-number": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/standings/split": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/penalty/framed": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/penalty/big-number": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/penalty/hero-left": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/penalty/stacked": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/driver_line/portrait": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/driver_line/hero-left": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/driver_line/hero-right": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/driver_line/framed": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/schedule/stacked": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/schedule/framed": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/schedule/split": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/schedule/big-number": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/quote/portrait": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/quote/framed": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/quote/hero-left": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "f1/quote/full-bleed": {
-      "fp": "5e0d62e432839e0f6fbd459ac5525676fb70ec53ace1af9404ec23911f6e2894",
+      "fp": "cd091fa56e5df59e3fe7c33e7cf9894779707910149986423d1b887f4d8275ed",
       "ok": true
     },
     "vct/match_result/hero-left": {

@@ -1,7 +1,16 @@
 {
+  "skins": {
+    "dark": {
+      "fallbackAccent": "#FE76EC"
+    }
+  },
   "fonts": {
     "display": {
       "family": "DIN Condensed",
+      "google": false
+    },
+    "body": {
+      "family": "Plus Jakarta Sans",
       "google": false
     }
   },

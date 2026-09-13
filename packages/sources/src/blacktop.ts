@@ -93,7 +93,7 @@ export const blacktopLive: SourceAdapter = {
         tier: 'A',
         sourceDomain: 'api.ocblacktop.com',
         rawUrl: `${BASE}/live/sessions/${session.id}/timing`,
-        title: `Klasemen Sementara (Live) — ${current.location.name} ${session.name}`,
+        title: `Klasemen Sementara (Live) di ${current.location.name} ${session.name}`,
         body: '',
         observedAt: ctx.now,
         payload: {

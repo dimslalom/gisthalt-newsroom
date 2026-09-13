@@ -16,7 +16,7 @@ export const tmdb: SourceAdapter = { key:'tmdb', vertical:'film', tier:'A', cade
     const out:RawItem[]=[];
     for(const m of movies.results.slice(0,5)) {
       const base = {sourceKey:'tmdb',vertical:'film' as const,tier:'A' as const,sourceDomain:'themoviedb.org',rawUrl:`https://www.themoviedb.org/movie/${m.id}`,body:'',observedAt:ctx.now,imageUrl:m.poster_path?`https://image.tmdb.org/t/p/w780${m.poster_path}`:null};
-      if(m.release_date)out.push({...base,externalId:`release:${m.id}:${m.release_date}`,title:`${m.title} — ${m.release_date}`,payload:{claimType:'release',title:m.title,releaseDate:m.release_date,tmdbId:m.id,region:'ID'}});
+      if(m.release_date)out.push({...base,externalId:`release:${m.id}:${m.release_date}`,title:`${m.title}: ${m.release_date}`,payload:{claimType:'release',title:m.title,releaseDate:m.release_date,tmdbId:m.id,region:'ID'}});
       const detail=await get<{credits?:{cast:{name:string;character:string}[]};videos?:{results:{key:string;site:string;official:boolean;type:string;name:string}[]}}>(`movie/${m.id}?append_to_response=credits,videos`);
       const cast=detail.credits?.cast?.slice(0,10)??[];
       if(cast.length)out.push({...base,externalId:`cast:${m.id}`,title:`Pemeran ${m.title}`,payload:{claimType:'cast',title:m.title,tmdbId:m.id,rows:cast.map((c,i)=>({position:i+1,name:c.name,value:c.character}))}});

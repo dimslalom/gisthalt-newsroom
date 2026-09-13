@@ -86,7 +86,9 @@ export const archetypes: Archetype[] = [
       const leader = rows[0];
       return {
         eyebrow: meetingLine(claim),
-        headline: claim.headline ?? `Klasemen ${sess(claim)}`,
+        // claim.headline is the raw OpenF1 title ("Practice 2 - Madrid 2026")
+        // for every structured claim here; it is never the display headline.
+        headline: `Klasemen ${sess(claim)}`,
         rows: toTableRows(rows, rows.length > 12 ? 14 : 10, 'time'),
         subhead: leader ? `Tercepat: ${s(leader.driver)} ${lapTime(leader.duration ?? null)}` : undefined,
         footnote: footer(claim),
@@ -161,7 +163,9 @@ export const archetypes: Archetype[] = [
         ? (claim.values.sessions as { name?: string; startsAt?: string; day?: string }[]) : [];
       return {
         eyebrow: `JADWAL · ${meet(claim)}`.toUpperCase(),
-        headline: claim.headline ?? meet(claim),
+        // Same as classification: claim.headline here is the raw OpenF1
+        // title ("Jadwal Spain"), never the localized display headline.
+        headline: meet(claim),
         rows: sessions.slice(0, 8).map((x, i) => ({
           rank: String(i + 1),
           primary: s(x.name),

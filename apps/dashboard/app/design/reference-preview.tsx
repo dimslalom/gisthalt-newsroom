@@ -1,21 +1,39 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-export interface ReferenceRender { url: string; width: number; height: number; archetype: string; layout: string }
+interface ReferenceData {
+  imageSrc: string; width: number; height: number; archetype: string; layout: string;
+  /** Set when this came from an actual pulled claim, not the sample fixture. */
+  real: boolean; headline: string | null; caption: string | null;
+}
 
 type Stage = 'closed' | 'thumb' | 'full';
 
 /**
- * A real layout drawn with a real claim's headline, eyebrow and photo — for
- * scale and content-density reference, not part of the page's normal flow.
- * Floats over everything as a small round button; click reveals a floating
- * thumbnail next to it; click that thumbnail to blow it up full-screen.
+ * A random real post from the *exact* archetype/layout currently open in the
+ * studio — never a different one from elsewhere in the brand — re-rendered
+ * fresh through today's design. Refetches whenever the studio's
+ * archetype/layout selection changes, so it always tracks what's on screen.
+ * Floats over everything as a small round button, not part of the page's
+ * normal flow; click reveals a floating thumbnail next to it; click that
+ * thumbnail to blow it up full-screen.
  */
-export function ReferencePreview({ reference, imageSrc }: { reference: ReferenceRender; imageSrc: string }) {
+export function ReferencePreview({ brand, archetype, layout }: { brand: string; archetype: string; layout: string }) {
   const [stage, setStage] = useState<Stage>('closed');
-  const displayW = 150;
-  const displayH = Math.round((reference.height / reference.width) * displayW);
-  const label = `Reference render of ${reference.archetype}/${reference.layout} with sample content`;
+  const [data, setData] = useState<ReferenceData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!archetype || !layout) return;
+    let cancelled = false;
+    setLoading(true);
+    fetch(`/api/design-reference?brand=${encodeURIComponent(brand)}&archetype=${encodeURIComponent(archetype)}&layout=${encodeURIComponent(layout)}`, { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((json: ReferenceData & { error?: string }) => { if (!cancelled && !json.error) setData(json); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [brand, archetype, layout]);
 
   useEffect(() => {
     if (stage === 'closed') return;
@@ -23,6 +41,15 @@ export function ReferencePreview({ reference, imageSrc }: { reference: Reference
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [stage]);
+
+  // Nothing to float until the first fetch for this archetype/layout resolves.
+  if (!data || data.archetype !== archetype || data.layout !== layout) return null;
+
+  const displayW = 150;
+  const displayH = Math.round((data.height / data.width) * displayW);
+  const label = data.real
+    ? `Reference render of a real post: ${data.headline ?? `${data.archetype}/${data.layout}`}`
+    : `Reference render of ${data.archetype}/${data.layout} with sample content`;
 
   return (
     <>
@@ -35,11 +62,12 @@ export function ReferencePreview({ reference, imageSrc }: { reference: Reference
           position: 'fixed', top: 76, right: 20, zIndex: 900,
           width: 44, height: 44, borderRadius: '50%', padding: 0, overflow: 'hidden',
           border: '1px solid var(--line)', background: 'var(--panel)', cursor: 'pointer',
+          opacity: loading ? 0.6 : 1, transition: 'opacity .2s ease',
           boxShadow: '0 2px 10px color-mix(in srgb, black 35%, transparent)',
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageSrc} alt="" width={44} height={44} style={{ display: 'block', width: 44, height: 44, objectFit: 'cover' }} />
+        <img src={data.imageSrc} alt="" width={44} height={44} style={{ display: 'block', width: 44, height: 44, objectFit: 'cover' }} />
       </button>
 
       {stage === 'thumb' && (
@@ -61,12 +89,10 @@ export function ReferencePreview({ reference, imageSrc }: { reference: Reference
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={imageSrc} alt={label} width={displayW} height={displayH}
+              src={data.imageSrc} alt={label} width={displayW} height={displayH}
               style={{ display: 'block', width: displayW, height: displayH, borderRadius: 4, border: '1px solid var(--line)' }}
             />
-            <span style={{ fontSize: 10, color: 'var(--muted)', textAlign: 'center', maxWidth: displayW }}>
-              Reference: real content in {reference.archetype}/{reference.layout}
-            </span>
+            <ReferenceCaption data={data} maxWidth={displayW} />
           </div>
         </div>
       )}
@@ -100,15 +126,38 @@ export function ReferencePreview({ reference, imageSrc }: { reference: Reference
             >×</button>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={imageSrc} alt={label}
+              src={data.imageSrc} alt={label}
               style={{ display: 'block', maxWidth: '80vw', maxHeight: '80vh', width: 'auto', height: 'auto', borderRadius: 4 }}
             />
-            <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-              Reference: real content in {reference.archetype}/{reference.layout}
-            </span>
+            <ReferenceCaption data={data} maxWidth={480} />
           </div>
         </div>
       )}
     </>
+  );
+}
+
+/** Real content gets its own headline + caption; the sample fixture keeps
+ *  the old generic label so it's obviously not being passed off as a post. */
+function ReferenceCaption({ data, maxWidth }: { data: ReferenceData; maxWidth: number }) {
+  if (!data.real) {
+    return (
+      <span style={{ fontSize: 10, color: 'var(--muted)', textAlign: 'center', maxWidth }}>
+        Reference: real content in {data.archetype}/{data.layout}
+      </span>
+    );
+  }
+  return (
+    <div style={{ display: 'grid', gap: 3, maxWidth, textAlign: 'center' }}>
+      <span style={{ fontSize: 9, color: 'var(--accent)', letterSpacing: '.06em', textTransform: 'uppercase' }}>
+        Real post · {data.archetype}/{data.layout}
+      </span>
+      {data.headline && <span style={{ fontSize: 11, color: 'var(--fg)', fontWeight: 600 }}>{data.headline}</span>}
+      {data.caption && (
+        <span style={{ fontSize: 10, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+          {data.caption}
+        </span>
+      )}
+    </div>
   );
 }

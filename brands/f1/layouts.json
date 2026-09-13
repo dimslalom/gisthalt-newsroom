@@ -80,7 +80,7 @@
                   "ref": "accent-text"
                 },
                 "align": "left",
-                "transform": "uppercase",
+                "transform": "lowercase",
                 "weight": 500
               },
               {
@@ -170,7 +170,7 @@
                   "ref": "fg"
                 },
                 "align": "left",
-                "transform": "none",
+                "transform": "lowercase",
                 "weight": 700
               },
               {

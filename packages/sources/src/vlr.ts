@@ -13,7 +13,7 @@ export function parseVlrResults(html: string, now: Date): RawItem[] {
     if (!eventId || names.length !== 2 || scores.length !== 2 || scores.some((s)=>!/^\d+$/.test(s)) || names.some((s)=>!s) || !/Completed/i.test(card.find('.ml-status').text())) throw new Error('VLR parser: incomplete completed-match fields');
     const team1=names[0]!, team2=names[1]!, score1=Number(scores[0]), score2=Number(scores[1]);
     return { sourceKey:'vlr', externalId:eventId, vertical:'vct', tier:'A', sourceDomain:'vlr.gg', rawUrl:`https://www.vlr.gg${href}`,
-      title:`${team1} ${score1}–${score2} ${team2}`, body:'', observedAt:now,
+      title:`${team1} ${score1}-${score2} ${team2}`, body:'', observedAt:now,
       payload:{claimType:'match_result',team1,team2,score1,score2,eventId,tournament:event} };
   });
 }

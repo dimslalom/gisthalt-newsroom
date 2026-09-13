@@ -3,6 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 
 interface GoldenJob { running: boolean; checked: number; total: number; done: boolean; passed?: number; error?: string }
 
+const TRACK_W = 320;
+const INDETERMINATE_SCALE = 0.3;
+/** How far the scaled-down bar must slide to reach the track's right edge.
+ *  translateX(px) is an absolute shift unaffected by a scale earlier in the
+ *  same transform's application order, so this is just the plain leftover
+ *  distance — no percentage-of-scaled-box math to get backwards. */
+const INDETERMINATE_TRAVEL = TRACK_W - TRACK_W * INDETERMINATE_SCALE;
+
 /**
  * Certification, from the GUI: the button a designer reaches for after
  * finishing a layout (or several), instead of a terminal command. Runs the
@@ -72,22 +80,28 @@ export function CertifyButton() {
               <div style={{ fontSize: 12, color: 'var(--muted)' }}>
                 Don&apos;t close this tab or navigate away until it finishes.
               </div>
-              <div style={{ width: 320, height: 8, borderRadius: 4, background: 'var(--panel)', overflow: 'hidden', border: '1px solid var(--line)' }}>
+              <div style={{ width: TRACK_W, height: 8, borderRadius: 4, background: 'var(--panel)', overflow: 'hidden', border: '1px solid var(--line)' }}>
                 <div style={{
-                  height: '100%', width: pct !== null ? `${pct}%` : '30%', background: 'var(--accent)',
-                  transition: 'width .3s ease',
-                  // Indeterminate state: transform, not margin-left, so the
-                  // looping animation is compositor-only and never triggers layout.
+                  height: '100%', width: '100%', background: 'var(--accent)', transformOrigin: 'left',
+                  // Fill amount is always a scaleX of a full-width bar, never
+                  // a literal width change — the determinate fill updates on
+                  // every ~1s poll tick, and a `width` transition would force
+                  // a layout recalc each time; `transform` is compositor-only.
+                  transition: 'transform .3s ease',
+                  transform: pct !== null ? `scaleX(${pct / 100})` : `scaleX(${INDETERMINATE_SCALE})`,
                   ...(pct === null ? { animation: 'certify-indeterminate 1.2s ease-in-out infinite' } : {}),
                 }} />
               </div>
               <div style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'ui-monospace, monospace' }}>
                 {job.total > 0 ? `${job.checked} / ${job.total} renders checked` : 'starting…'}
               </div>
-              {/* A 30%-wide bar needs to travel the remaining 70% of the
-                  track; translateX's percentage is relative to the bar's own
-                  width, so that's 70/30*100 ≈ 233%, not 70%. */}
-              <style>{`@keyframes certify-indeterminate { 0% { transform: translateX(0%); } 50% { transform: translateX(233%); } 100% { transform: translateX(0%); } }`}</style>
+              {/* Indeterminate: the scaled-down bar sliding to the track's
+                  right edge and back. translateX must come before scaleX in
+                  the transform list — written left-to-right, each function
+                  applies to the result of the ones after it, so translateX
+                  here is the outermost step and its px value lands in the
+                  track's real coordinate space, not the bar's shrunk one. */}
+              <style>{`@keyframes certify-indeterminate { 0% { transform: translateX(0px) scaleX(${INDETERMINATE_SCALE}); } 50% { transform: translateX(${INDETERMINATE_TRAVEL}px) scaleX(${INDETERMINATE_SCALE}); } 100% { transform: translateX(0px) scaleX(${INDETERMINATE_SCALE}); } }`}</style>
             </>
           ) : (
             <div style={{ display: 'grid', gap: 12, justifyItems: 'center', maxWidth: 420, textAlign: 'center' }}>

@@ -107,7 +107,7 @@ export function normaliseSession(
     tier: 'A',
     sourceDomain: 'api.openf1.org',
     rawUrl: `https://api.openf1.org/v1/session_result?session_key=${session.session_key}`,
-    title: `${session.session_name} — ${session.location} ${session.year}`,
+    title: `${session.session_name} - ${session.location} ${session.year}`,
     body: '',
     observedAt: new Date(session.date_end),
     payload: {
