@@ -20,6 +20,7 @@
   <meta name="twitter:title" content="gisthalt">
   <meta name="twitter:description" content="gisthalt is an independent media company building brands.">
   <meta name="twitter:image" content="https://gisthalt.com/assets/social-preview.jpg">
+  <script>document.documentElement.classList.add('has-js');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@400;600&display=swap" rel="stylesheet">
@@ -55,8 +56,12 @@
       font-family: "Lexend Deca", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
+    html.has-js .intro { opacity: 0; }
+    html.has-js.is-lottie-frame-ready .intro { opacity: 1; }
+
     .intro {
-      min-height: 100svh;
+      min-height: 100vh;
+      height: 100vh;
       padding: clamp(2rem, 7vw, 5rem) clamp(1.5rem, 5vw, 3rem);
       display: grid;
       place-items: center;
@@ -94,7 +99,7 @@
       cursor: pointer;
       transform-origin: 50% 65%;
       transition: transform 130ms cubic-bezier(.2, .9, .3, 1), filter 130ms ease, text-shadow 130ms ease;
-      animation: mark-arrives 650ms cubic-bezier(.16, 1, .3, 1) both;
+      animation: none;
     }
 
     .logo-fallback {
@@ -102,7 +107,6 @@
       font-family: "Libertinus Keyboard", Georgia, serif;
       font-size: inherit;
       font-weight: 400;
-      text-shadow: 0 .075em 0 rgba(23, 22, 19, .22);
     }
 
     .logo-g canvas {
@@ -113,8 +117,10 @@
       opacity: 0;
       filter: brightness(0);
       transform: scale(3.2);
+      backface-visibility: hidden;
+      will-change: transform;
       transform-origin: center;
-      transition: opacity 100ms ease;
+      transition: none;
     }
 
     .logo-g.is-lottie-ready .logo-fallback { opacity: 0; }
@@ -145,11 +151,20 @@
       display: inline-block;
       font-family: "Lexend Deca", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-weight: 600;
-      animation: word-extends 760ms cubic-bezier(.16, 1, .3, 1) 280ms both;
+      animation: word-extends 760ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    html.has-js .logo-rest {
+      animation-play-state: paused;
+    }
+
+    html.has-js .intro.is-wordmark-ready .logo-rest {
+      animation-play-state: running;
     }
 
     .brand-takeover {
-      min-height: 100svh;
+      min-height: 100vh;
+      height: 100vh;
       background: #000;
       scroll-snap-align: start;
       scroll-snap-stop: always;
@@ -157,7 +172,8 @@
 
     .brand-stage {
       position: relative;
-      min-height: 100svh;
+      min-height: 100%;
+      height: 100%;
       overflow: clip;
       isolation: isolate;
       background: #000;
@@ -255,8 +271,9 @@
         scroll-behavior: auto !important;
       }
 
-      .brand-takeover { min-height: 100svh; }
-      .brand-stage { position: relative; min-height: 100svh; }
+      html.has-js .logo-rest { animation: none; opacity: 1; }
+      .brand-takeover { min-height: 100vh; }
+      .brand-stage { position: relative; min-height: 100%; }
       .track-image { transform: scale(1.08); }
       .s3-mark { opacity: 1; transform: translate(-50%, -50%); }
       .brand-content { opacity: 1; }
@@ -269,10 +286,18 @@
     }
 
     @media (max-height: 32rem) and (orientation: landscape) {
-      .intro { min-height: auto; padding-block: 2rem; }
-      .brand-takeover { min-height: 100svh; }
+      .intro { padding-block: 2rem; }
+      .brand-takeover { min-height: 100vh; }
       .s3-mark { width: 4rem; }
       .brand-content { bottom: 2rem; }
+    }
+
+    @supports (height: 100dvh) {
+      .intro,
+      .brand-takeover {
+        min-height: 100dvh;
+        height: 100dvh;
+      }
     }
   </style>
 </head>
@@ -332,10 +357,18 @@
     import { DotLottie } from 'https://esm.sh/@lottiefiles/dotlottie-web@0.80.0';
 
     const mark = document.querySelector('.logo-g');
+    const intro = document.querySelector('.intro');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let wordmarkStarted = false;
+    const startWordmark = () => {
+      if (wordmarkStarted) return;
+      wordmarkStarted = true;
+      intro.classList.add('is-wordmark-ready');
+    };
     const player = new DotLottie({
       canvas: document.querySelector('#gisthalt-logo-animation'),
       src: 'assets/gisthalt-logo.lottie',
-      autoplay: true,
+      autoplay: false,
       loop: false,
       stateMachineId: 'StateMachine1',
     });
@@ -347,7 +380,15 @@
       player.stateMachineStart();
       player.setFrame(0);
       mark.classList.add('is-lottie-ready');
+      requestAnimationFrame(() => {
+        document.documentElement.classList.add('is-lottie-frame-ready');
+        requestAnimationFrame(() => {
+          startWordmark();
+          if (!prefersReducedMotion) player.postStateMachineEvent('toggleEvent');
+        });
+      });
     });
+    window.setTimeout(startWordmark, 900);
     mark.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
