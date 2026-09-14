@@ -66,7 +66,7 @@ export function LayersPanel({
         })}
       </div>
 
-      <div className="panel-title" style={{ borderTop: '1px solid var(--line)', paddingTop: 9 }}>
+      <div style={{ borderTop: '1px solid var(--line)', paddingTop: 9 }}>
         <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>
           Add into {selected ? 'the selected frame' : 'the canvas'}
         </div>
@@ -96,12 +96,14 @@ function MiniBtn({ children, onClick, title }: { children: React.ReactNode; onCl
 /* ------------------------------------------------------------- inspector */
 
 export function Inspector({
-  node, parent, fields, present, onChange,
+  node, parent, fields, present, values, onChange,
 }: {
   node: LayoutNode | null;
   parent: FrameNode | null;
   fields: FieldDef[];
   present: Set<string>;
+  /** The previewed claim's actual text per field key. */
+  values?: Record<string, string>;
   onChange: (patch: Partial<LayoutNode>) => void;
 }) {
   if (!node) {
@@ -114,7 +116,7 @@ export function Inspector({
         <input value={node.name} onChange={(e) => onChange({ name: e.target.value })} />
       </Field>
 
-      {node.kind === 'text' && <TextProps node={node} fields={fields} present={present} onChange={onChange} />}
+      {node.kind === 'text' && <TextProps node={node} fields={fields} present={present} values={values} onChange={onChange} />}
       {node.kind === 'frame' && <FrameProps node={node} onChange={onChange} />}
       {node.kind === 'image' && <ImageProps node={node} onChange={onChange} />}
       {node.kind === 'rows' && <RowsProps node={node} onChange={onChange} />}
@@ -186,8 +188,9 @@ function AbsoluteInsets({ node, onChange }: { node: LayoutNode; onChange: (p: Pa
 
 /* ---------------------------------------------------------- text + binding */
 
-function TextProps({ node, fields, present, onChange }: {
+function TextProps({ node, fields, present, values, onChange }: {
   node: TextNode; fields: FieldDef[]; present: Set<string>;
+  values?: Record<string, string>;
   onChange: (patch: Partial<LayoutNode>) => void;
 }) {
   const src = node.source;
@@ -203,7 +206,9 @@ function TextProps({ node, fields, present, onChange }: {
       <div className="row" style={{ gap: 6 }}>
         <button type="button" aria-pressed={!bound}
           className={`toggle ${!bound ? 'on' : ''}`}
-          onClick={() => setSource({ type: 'static', value: bound ? (def?.label ?? 'Text') : '' })}
+          // Start from the real wording on the claim being previewed, so
+          // overriding one post's headline begins from its actual headline.
+          onClick={() => setSource({ type: 'static', value: bound ? (values?.[src.field] ?? def?.label ?? 'Text') : '' })}
         >Static text</button>
         <button type="button" aria-pressed={bound}
           className={`toggle ${bound ? 'on' : ''}`}
@@ -381,7 +386,7 @@ function RowsProps({ node, onChange }: { node: import('./doc-model.ts').RowsNode
 const isHexColour = (c: Colour | 'none' | undefined): c is { hex: string; alpha?: number } =>
   !!c && c !== 'none' && 'hex' in c;
 
-/** background/fill only ever round-trips a flat colour here — a document that
+/** background/fill only ever round-trips a flat colour here; a document that
  *  already carries a gradient plate keeps it (nothing here can produce one),
  *  this just gives the first stop as the editable colour. */
 function paintToColourValue(p: Paint | undefined): Colour | 'none' {
@@ -437,7 +442,7 @@ function ColourField({ label, value, onChange, allowNone }: {
 /** Brand-token-or-custom font family, mirroring ColourField's split. A custom
  *  family is raw CSS: it only actually renders if that font is already loaded
  *  (the brand's own @font-face, or a system font baked into the render
- *  container) — typing an arbitrary Google Font name here won't fetch it. */
+ *  container); typing an arbitrary Google Font name here won't fetch it. */
 function FontField({ value, onChange }: { value: FontSpec | undefined; onChange: (v: FontSpec) => void }) {
   const custom = !!value && 'family' in value;
   const token = !custom ? (value as { token: FontFamily } | undefined)?.token ?? 'body' : 'body';
@@ -518,7 +523,7 @@ function Select({ value, options, onChange }: { value: string; options: readonly
 
 function Section({ title }: { title: string }) {
   return (
-    <div className="panel-title" style={{ borderTop: '1px solid var(--line)', paddingTop: 9, fontSize: 14, color: 'var(--fg)' }}>
+    <div style={{ borderTop: '1px solid var(--line)', paddingTop: 9, fontSize: 14, color: 'var(--fg)' }}>
       {title}
     </div>
   );

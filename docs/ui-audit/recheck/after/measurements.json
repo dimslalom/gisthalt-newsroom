@@ -1,0 +1,430 @@
+[
+  {
+    "name": "design",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "derive",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "lab",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "contact-sheet",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "review",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "review-expired",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "accounts",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "ops",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "editor",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "theme",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "theme-font",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "reference-thumb",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "reference-full",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "post",
+    "width": 1440,
+    "scroll": 1440,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "name": "design",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "derive",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "lab",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "contact-sheet",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "review",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "review-expired",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "accounts",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "ops",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      },
+      {
+        "tag": "TABLE",
+        "text": "SourceTierCadenceLast successItemsLast errorControlreddit:VALORANTComp",
+        "right": 793.34375
+      },
+      {
+        "tag": "THEAD",
+        "text": "SourceTierCadenceLast successItemsLast errorControl",
+        "right": 793.34375
+      },
+      {
+        "tag": "TR",
+        "text": "SourceTierCadenceLast successItemsLast errorControl",
+        "right": 793.34375
+      },
+      {
+        "tag": "TH",
+        "text": "Last success",
+        "right": 426.453125
+      },
+      {
+        "tag": "TH",
+        "text": "Items",
+        "right": 477.734375
+      },
+      {
+        "tag": "TH",
+        "text": "Last error",
+        "right": 720.328125
+      },
+      {
+        "tag": "TH",
+        "text": "Control",
+        "right": 793.34375
+      },
+      {
+        "tag": "TBODY",
+        "text": "reddit:VALORANTCompetitiveC180s4m ago39Pauserss:varietyB300s3m ago94Pa",
+        "right": 793.34375
+      },
+      {
+        "tag": "TR",
+        "text": "reddit:VALORANTCompetitiveC180s4m ago39Pause",
+        "right": 793.34375
+      },
+      {
+        "tag": "TD",
+        "text": "4m ago",
+        "right": 426.453125
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "editor",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "theme",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "theme-font",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "reference-thumb",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "reference-full",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "post",
+    "width": 390,
+    "scroll": 390,
+    "fonts": "Lexend, sans-serif",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Accounts",
+        "right": 458.296875
+      },
+      {
+        "tag": "A",
+        "text": "Ops",
+        "right": 505.015625
+      }
+    ],
+    "errors": []
+  }
+]

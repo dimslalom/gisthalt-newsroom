@@ -26,6 +26,8 @@ interface RenderResponse {
   width?: number; height?: number;
   guards?: { headlineOverflowed: boolean; fittedPx: string | null; fontsPinned: boolean };
   contrast?: ContrastFinding[];
+  /** The previewed claim's actual text per field key. */
+  fieldValues?: Record<string, string>;
 }
 
 const CANVAS_FALLBACK: CanvasDef[] = [
@@ -34,10 +36,23 @@ const CANVAS_FALLBACK: CanvasDef[] = [
   { key: 'story', label: 'Story 9:16', width: 1080, height: 1920 },
 ];
 
-export function DesignStudio({ catalog }: { catalog: Catalog }) {
-  const [brand, setBrand] = useState(catalog.brands[0]?.key ?? 'f1');
-  const [archetype, setArchetype] = useState(catalog.archetypes[0]?.key ?? '');
-  const [layout, setLayout] = useState(catalog.archetypes[0]?.layouts[0] ?? 'hero-left');
+/** A real post opened for design; see /api/post-design. */
+interface PostMeta {
+  compositionId: string; claim: unknown; imagePath: string | null; skin: string | null;
+  headline: string; captions: Record<string, string>; customised: boolean; carousel: boolean;
+  accents: string[];
+}
+
+export function DesignStudio({ catalog, initial, postId }: {
+  catalog: Catalog;
+  initial?: { brand: string; archetype: string; layout: string };
+  /** Edit one post's own design with its real claim, instead of a layout template. */
+  postId?: string;
+}) {
+  const [post, setPost] = useState<PostMeta | null>(null);
+  const [brand, setBrand] = useState(initial?.brand ?? catalog.brands[0]?.key ?? 'f1');
+  const [archetype, setArchetype] = useState(initial?.archetype ?? catalog.archetypes[0]?.key ?? '');
+  const [layout, setLayout] = useState(initial?.layout ?? catalog.archetypes[0]?.layouts[0] ?? 'hero-left');
   const [fixture, setFixture] = useState(catalog.fixtures[0] ?? 'classification-basic');
   const [skin, setSkin] = useState(catalog.skins[0] ?? 'dark');
   const [canvasKey, setCanvasKey] = useState('portrait-4x5');
@@ -60,16 +75,33 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
   /* ------------------------------------------------------------ load doc */
 
   const loadDoc = useCallback(async () => {
-    const res = await fetch(`/api/layout-doc?brand=${brand}&archetype=${archetype}&layout=${layout}`, { cache: 'no-store' });
-    const data = await res.json() as { doc: LayoutDoc | null; fields?: FieldDef[]; canvases?: CanvasDef[] };
-    setDoc(data.doc);
-    if (data.fields) setFields(data.fields);
-    if (data.canvases?.length) setCanvases(data.canvases);
-    if (data.doc) setCanvasKey(data.doc.canvas);
+    try {
+    if (postId) {
+      const res = await fetch(`/api/post-design?compositionId=${postId}`, { cache: 'no-store' });
+      const data = await res.json() as PostMeta & { doc: LayoutDoc | null; fields?: FieldDef[]; canvases?: CanvasDef[]; error?: string };
+      if (data.error) { setStatus(`Could not load this post: ${data.error}`); return; }
+      setPost({
+        compositionId: data.compositionId, claim: data.claim, imagePath: data.imagePath, skin: data.skin,
+        headline: data.headline, captions: data.captions, customised: data.customised, carousel: data.carousel,
+        accents: data.accents,
+      });
+      setDoc(data.doc);
+      if (data.fields) setFields(data.fields);
+      if (data.canvases?.length) setCanvases(data.canvases);
+      if (data.doc) setCanvasKey(data.doc.canvas);
+    } else {
+      const res = await fetch(`/api/layout-doc?brand=${brand}&archetype=${archetype}&layout=${layout}`, { cache: 'no-store' });
+      const data = await res.json() as { doc: LayoutDoc | null; fields?: FieldDef[]; canvases?: CanvasDef[] };
+      setDoc(data.doc);
+      if (data.fields) setFields(data.fields);
+      if (data.canvases?.length) setCanvases(data.canvases);
+      if (data.doc) setCanvasKey(data.doc.canvas);
+    }
     setSelected(null);
     setDirty(false);
     setUndoStack([]);
-  }, [brand, archetype, layout]);
+    } catch (e) { setStatus(`Could not load design: ${(e as Error).message}`); }
+  }, [postId, brand, archetype, layout]);
 
   useEffect(() => { void loadDoc(); }, [loadDoc]);
 
@@ -77,22 +109,24 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
 
   // The preview always goes through the renderer container, and always sends
   // the in-memory document; so what's on screen is the unsaved edit, drawn by
-  // the exact code path that will draw production PNGs.
+  // the exact code path that will draw production PNGs. A post previews with
+  // its own claim and photo; a layout previews with a sample fixture.
   const renderNow = useCallback(async (d: LayoutDoc | null) => {
+    if (postId && !post) return;
     setBusy(true);
     try {
+      const subject = post
+        ? { claim: post.claim, imagePath: post.imagePath, skin: post.skin ?? undefined, accents: post.accents }
+        : { fixture, skin };
       const res = await fetch('/api/render', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          brand, archetype, layout, fixture, skin,
-          canvas: canvasKey, doc: d ?? undefined,
-        }),
+        body: JSON.stringify({ brand, archetype, layout, ...subject, canvas: canvasKey, doc: d ?? undefined }),
       });
       setPreview(await res.json() as RenderResponse);
     } catch (e) {
       setPreview({ error: (e as Error).message });
     } finally { setBusy(false); }
-  }, [brand, archetype, layout, fixture, skin, canvasKey]);
+  }, [postId, post, brand, archetype, layout, fixture, skin, canvasKey]);
 
   // Debounced: typing in a text field shouldn't fire a browser render per keystroke.
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -140,6 +174,20 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
   async function save() {
     if (!doc) return;
     setBusy(true);
+    try {
+    if (post) {
+      const res = await fetch('/api/post-design', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ compositionId: post.compositionId, doc: { ...doc, canvas: canvasKey } }),
+      });
+      const data = await res.json() as { error?: string };
+      setBusy(false);
+      if (data.error) { setStatus(`Save failed: ${data.error}`); return; }
+      setPost({ ...post, customised: true });
+      setDirty(false);
+      setStatus('Saved to this post only. Its image is re-rendered and ready to export.');
+      return;
+    }
     const res = await fetch('/api/layout-doc', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ brand, archetype, layout, doc: { ...doc, canvas: canvasKey } }),
@@ -150,6 +198,8 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
     if (data.doc) setDoc(data.doc);
     setDirty(false);
     setStatus('Saved to brands/' + brand + '/layouts.json');
+    } catch (e) { setStatus(`Save failed: ${(e as Error).message}`); }
+    finally { setBusy(false); }
   }
 
   async function seed() {
@@ -164,6 +214,21 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
   }
 
   async function discard() {
+    try {
+    if (post) {
+      if (!confirm('Reset this post to its layout design? Your edits to this post are removed.')) return;
+      setBusy(true);
+      const res = await fetch('/api/post-design?op=reset', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ compositionId: post.compositionId }),
+      });
+      const data = await res.json() as { error?: string };
+      setBusy(false);
+      if (data.error) { setStatus(`Reset failed: ${data.error}`); return; }
+      setStatus('Reset to the layout design. The post image is re-rendered.');
+      void loadDoc();
+      return;
+    }
     if (!confirm(`Delete the document for ${archetype}/${layout}? This layout goes back to the built-in CSS template.`)) return;
     setBusy(true);
     await fetch('/api/layout-doc?op=delete', {
@@ -173,12 +238,23 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
     setBusy(false);
     setStatus('Document deleted; this layout uses the built-in template again.');
     void loadDoc();
+    } catch (e) { setStatus(`Reset failed: ${(e as Error).message}`); }
+    finally { setBusy(false); }
   }
 
   /* ------------------------------------------------------------------ UI */
 
+  if (postId && !doc) {
+    return <p style={{ fontSize: 12, color: status ? 'var(--bad)' : 'var(--muted)' }}>{status ?? 'Loading post…'}</p>;
+  }
+
   return (
     <div style={{ display: 'grid', gap: 14 }}>
+      {post ? (
+        <PostPanel post={post} archetype={archetype} layout={layout} dirty={dirty}
+          canvases={canvases} canvasKey={canvasKey} onCanvas={(key) => { setCanvasKey(key); setDirty(true); }} />
+      ) : (
+      <>
       <ReferencePreview brand={brand} archetype={archetype} layout={layout} />
       <div className="card">
         <div className="row">
@@ -208,14 +284,16 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
             </select>
           </label>
           <label className="field">Canvas
-            <select value={canvasKey} onChange={(e) => setCanvasKey(e.target.value)} disabled={!doc}>
+            <select value={canvasKey} onChange={(e) => { setCanvasKey(e.target.value); setDirty(true); }} disabled={!doc}>
               {canvases.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
             </select>
           </label>
           <button type="button" onClick={() => setThemeOpen((v) => !v)} style={{ alignSelf: 'end', fontSize: 12 }}>
             {themeOpen ? 'Hide' : 'Edit'} brand palette &amp; fonts
           </button>
-          <div style={{ alignSelf: 'end' }}><CertifyButton /></div>
+          <div style={{ alignSelf: 'end' }}>
+            <CertifyButton layout={`${brand}/${archetype}/${layout}`} label="Certify this layout" />
+          </div>
         </div>
         {themeOpen && (
           <div style={{ borderTop: '1px solid var(--line)', marginTop: 12, paddingTop: 12 }}>
@@ -223,6 +301,8 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
           </div>
         )}
       </div>
+      </>
+      )}
 
       {!doc ? (
         <div className="empty" style={{ display: 'grid', gap: 12, justifyItems: 'start' }}>
@@ -250,10 +330,12 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
           <div className="studio-viewer">
             <div className="row" style={{ justifyContent: 'space-between' }}>
               <div className="row" style={{ gap: 7 }}>
-                <button className="primary" onClick={save} disabled={busy || !dirty}>{dirty ? 'Save' : 'Saved'}</button>
+                <button className="primary" onClick={save} disabled={busy || !dirty || Boolean(post?.carousel)}>{dirty ? 'Save' : 'Saved'}</button>
                 <button onClick={undo} disabled={!undoStack.length}>Undo</button>
                 <button onClick={() => void loadDoc()} disabled={!dirty}>Revert</button>
-                <button className="danger" onClick={discard}>Delete document</button>
+                {post
+                  ? <button className="danger" onClick={discard} disabled={busy || !post.customised}>Reset to layout design</button>
+                  : <button className="danger" onClick={discard}>Delete document</button>}
               </div>
               <span style={{ fontSize: 11, color: busy ? 'var(--accent)' : 'var(--muted)' }}>
                 {busy ? 'rendering…' : `${canvas.width}×${canvas.height}`}
@@ -288,10 +370,91 @@ export function DesignStudio({ catalog }: { catalog: Catalog }) {
             parent={selectedParent}
             fields={fields}
             present={present}
+            values={preview?.fieldValues}
             onChange={(patch) => { if (selected) mutate((r) => updateNode(r, selected, patch)); }}
           />
         </div>
       )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------- post mode */
+
+const PLATFORM_LABEL: Record<string, string> = { x: 'X', instagram: 'Instagram', threads: 'Threads', tiktok: 'TikTok' };
+
+/**
+ * What this post is, and everything needed to post it by hand. Downloads read
+ * the post's saved render, so they're held back while there are unsaved
+ * edits; otherwise the file you post would silently be the previous design.
+ */
+function PostPanel({ post, archetype, layout, dirty, canvases, canvasKey, onCanvas }: {
+  post: PostMeta; archetype: string; layout: string; dirty: boolean;
+  canvases: CanvasDef[]; canvasKey: string; onCanvas: (key: string) => void;
+}) {
+  const [copied, setCopied] = useState<string | null>(null);
+  const [captionStatus, setCaptionStatus] = useState<string | null>(null);
+  const exportHref = (format: 'feed' | 'vertical') => `/api/post-export?compositionId=${post.compositionId}&format=${format}`;
+
+  async function saveCaption(platform: string, caption: string) {
+    try {
+      const res = await fetch('/api/post-design', {
+        method: 'PATCH', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ compositionId: post.compositionId, platform, caption }),
+      });
+      const data = await res.json() as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? 'Caption save failed');
+      setCaptionStatus(`${PLATFORM_LABEL[platform] ?? platform} caption saved.`);
+    } catch (e) { setCaptionStatus(`Caption save failed: ${(e as Error).message}`); }
+  }
+
+  return (
+    <div className="card" style={{ display: 'grid', gap: 12 }}>
+      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'grid', gap: 4, maxWidth: '70ch' }}>
+          <strong className="panel-title" style={{ fontSize: 16 }}>{post.headline}</strong>
+          <span className="metadata">
+            <span>{archetype}</span><span>{layout}</span>
+            <span>{post.customised ? 'Custom design for this post' : 'Using the layout design'}</span>
+          </span>
+        </div>
+        <label className="field">Canvas
+          <select value={canvasKey} onChange={(e) => onCanvas(e.target.value)}>
+            {canvases.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+          </select>
+        </label>
+      </div>
+
+      {post.carousel && (
+        <p style={{ fontSize: 12, color: 'var(--warn)', margin: 0 }}>
+          This is a carousel. Slides can&apos;t be edited one at a time here yet, so download them from Review.
+        </p>
+      )}
+
+      <div className="row" style={{ gap: 8 }}>
+        {dirty
+          ? <span style={{ fontSize: 12, color: 'var(--warn)' }}>Save changes before downloading.</span>
+          : <>
+              <a className="button-link" href={exportHref('feed')} download>Download saved artwork ({canvases.find((c) => c.key === canvasKey)?.label ?? canvasKey})</a>
+              <a className="button-link" href={exportHref('vertical')} download>Download 9:16 (TikTok)</a>
+            </>}
+      </div>
+
+      <div className="caption-grid">
+        {Object.entries(post.captions).map(([platform, caption]) => (
+          <label className="field" key={platform}>
+            <span className="metadata"><span>{PLATFORM_LABEL[platform] ?? platform}</span></span>
+            <textarea defaultValue={caption} rows={4} onBlur={(e) => void saveCaption(platform, e.target.value)} />
+            <button type="button" style={{ justifySelf: 'start', fontSize: 11, padding: '3px 8px' }}
+              onClick={(e) => {
+                const text = e.currentTarget.parentElement?.querySelector('textarea')?.value ?? caption;
+                void navigator.clipboard.writeText(text);
+                setCopied(platform);
+              }}>{copied === platform ? 'Copied' : `Copy ${PLATFORM_LABEL[platform] ?? platform} caption`}</button>
+          </label>
+        ))}
+      </div>
+      {captionStatus && <p role="status" style={{ fontSize: 12, margin: 0 }}>{captionStatus}</p>}
     </div>
   );
 }
@@ -427,7 +590,7 @@ function Canvas({
 const round3 = (n: number): number => Math.round(n * 1000) / 1000;
 
 /**
- * Live, per-node contrast warnings — the editor half of guards/contrast-scan.ts.
+ * Live, per-node contrast warnings; the editor half of guards/contrast-scan.ts.
  * Never blocks: a document is free to carry a failing pairing while it's being
  * worked on. Only certification (the golden run) turns this into a hard stop.
  */

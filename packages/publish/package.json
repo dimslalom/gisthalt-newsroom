@@ -7,6 +7,7 @@
   "dependencies": {
     "@newsroom/core": "workspace:*",
     "@newsroom/db": "workspace:*",
+    "@newsroom/render": "workspace:*",
     "playwright": "^1.49.1",
     "sharp": "^0.33.5"
   }

@@ -2,8 +2,8 @@ import { chromium, type BrowserContext, type Page } from 'playwright';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
-import sharp from 'sharp';
 import { validateCaption, type Platform, type PublishAdapter, type PublishRequest, type PublishResult, type SessionHealth } from '@newsroom/core';
+import { verticalStill } from '@newsroom/render/export';
 
 const HOME: Record<Platform, string> = { x: 'https://x.com/home', instagram: 'https://www.instagram.com/', threads: 'https://www.threads.com/', tiktok: 'https://www.tiktok.com/tiktokstudio/upload' };
 const contexts = new Map<string, Promise<BrowserContext>>();
@@ -112,44 +112,14 @@ export class SocialBrowserAdapter implements PublishAdapter {
     }
   }
 }
-const TIKTOK_W = 1080;
-const TIKTOK_H = 1920;
-
-/**
- * TikTok is 9:16, not 4:5 — the platform's feed, algorithm and viewers all
- * expect a full vertical frame, but as of its photo-mode launch TikTok takes
- * still images directly. (Silent-video re-encoding was a workaround for a
- * platform limitation that no longer exists — no ffmpeg dependency needed.)
- *
- * Extends each 4:5 render to 1080x1920 by centering the untouched artwork
- * over a blurred, darkened, cover-cropped copy of itself filling the rest of
- * the frame — never stretched, and never a dead black letterbox bar.
- */
+/** TikTok photo-mode stills: each 4:5 render re-framed to 9:16 by the same
+ *  converter the dashboard's manual export uses (see @newsroom/render/export). */
 export async function tiktokStills(images: string[], key: string): Promise<string[]> {
   const dir = resolve(process.env.TIKTOK_OUT_DIR ?? './.data/tiktok'); mkdirSync(dir, { recursive: true });
   const out: string[] = [];
   for (const image of images) {
     const file = resolve(dir, `${createHash('sha256').update(`${key}:${image}`).digest('hex')}.png`);
-    const source = sharp(image);
-    const background = await source.clone()
-      .resize(TIKTOK_W, TIKTOK_H, { fit: 'cover' })
-      .blur(24)
-      .modulate({ brightness: 0.82 })
-      .png()
-      .toBuffer();
-    const foreground = await source.clone()
-      .resize(TIKTOK_W, TIKTOK_H, { fit: 'inside' })
-      .png()
-      .toBuffer();
-    const fgMeta = await sharp(foreground).metadata();
-    await sharp(background)
-      .composite([{
-        input: foreground,
-        left: Math.round((TIKTOK_W - (fgMeta.width ?? TIKTOK_W)) / 2),
-        top: Math.round((TIKTOK_H - (fgMeta.height ?? TIKTOK_H)) / 2),
-      }])
-      .png()
-      .toFile(file);
+    writeFileSync(file, await verticalStill(image));
     out.push(file);
   }
   return out;

@@ -61,6 +61,7 @@ export function Sheet({ tiles }: { tiles: Tile[] }) {
             <div className="metadata mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4 }}>
               <span>{t.archetype}</span><span>{t.layout}</span><span>{t.skin}</span>
             </div>
+            <a className="button-link" href={`/design/post/${t.id}`} style={{ marginTop: 6 }}>Edit design &amp; export</a>
           </div>
         ))}
       </div>

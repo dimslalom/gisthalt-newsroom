@@ -6,6 +6,7 @@ import { extractItem } from './stages/extract.ts';
 import { gateClaim } from './stages/gate.ts';
 import { composeClaim, PLATFORMS } from './stages/compose.ts';
 import { enqueuePost } from './stages/publish.ts';
+import { attachResultsCarousel } from './results-carousel.ts';
 
 export * from './context.ts';
 export * from './stages/poll.ts';
@@ -14,6 +15,8 @@ export * from './stages/gate.ts';
 export * from './stages/compose.ts';
 export * from './stages/publish.ts';
 export * from './review.ts';
+export * from './post-design.ts';
+export * from './regenerate-reviews.ts';
 
 export interface TickResult {
   polled: { source: string; inserted: number; error?: string }[];
@@ -47,6 +50,13 @@ export async function tick(ctx: Ctx = getCtx(), opts: { accountId?: string; plat
   for (const claim of ctx.store.claims.filter((c) => !decided.has(c.id))) {
     const outcome = gateClaim(ctx, claim);
     result.gated[outcome.outcome] = (result.gated[outcome.outcome] ?? 0) + 1;
+    if (outcome.outcome === 'review') {
+      const review = ctx.store.reviews.find((r) => r.claimId === claim.id && r.state === 'pending');
+      if (review) {
+        await attachResultsCarousel(ctx, claim, review.id).catch((e) =>
+          ctx.store.log({ stage: 'review', level: 'warn', msg: 'results carousel attach failed', dedupeHash: claim.dedupeHash, latencyMs: null, meta: { reviewId: review.id, error: (e as Error).message } }));
+      }
+    }
   }
 
   // Compose every auto-gated claim that has no composition yet, not only the
@@ -82,3 +92,4 @@ export { pollSource };
 export * from './seed.ts';
 export * from './ops.ts';
 export * from './carousel.ts';
+export * from './results-carousel.ts';

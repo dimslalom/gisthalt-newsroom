@@ -1,5 +1,5 @@
 import {describe,it,expect,beforeEach,vi} from 'vitest';
-import {parseVlrResults,normaliseSession,isNoResults,parseFeed,fia,redditAdapter,parseRedditAtom,blacktopLive} from '@newsroom/sources';
+import {parseVlrResults,normaliseSession,isNoResults,parseFeed,fia,redditAdapter,parseRedditAtom,blacktopLive,fetchFallbackImage} from '@newsroom/sources';
 import {brandByKey} from '@newsroom/brands';
 const now=new Date('2026-09-12T12:00:00Z');
 describe('source normalization',()=>{
@@ -134,5 +134,36 @@ describe('blacktop live adapter — leader-change gating', () => {
     expect(second).toHaveLength(1);
     expect(second[0]!.externalId).not.toBe(first[0]!.externalId);
     expect((second[0]!.payload.rows as { abbr: string }[])[0]!.abbr).toBe('NOR');
+  });
+});
+
+describe('Google image fallback', () => {
+  beforeEach(() => { vi.unstubAllEnvs(); });
+
+  it('no-ops without both an API key and a search engine ID', async () => {
+    vi.stubEnv('GOOGLE_CSE_API_KEY', ''); vi.stubEnv('GOOGLE_CSE_ID', 'cse123');
+    const fetchStub = async () => { throw new Error('should not be called'); };
+    expect(await fetchFallbackImage('Norris wins', fetchStub as typeof fetch)).toBeNull();
+  });
+
+  it('returns the first image result, querying the correct endpoint', async () => {
+    vi.stubEnv('GOOGLE_CSE_API_KEY', 'key123'); vi.stubEnv('GOOGLE_CSE_ID', 'cse123');
+    const calls: string[] = [];
+    const fetchStub = async (url: string) => {
+      calls.push(String(url));
+      return new Response(JSON.stringify({ items: [{ link: 'https://example.com/photo.jpg' }] }), { status: 200 });
+    };
+    const url = await fetchFallbackImage('Norris wins Spanish GP', fetchStub as typeof fetch);
+    expect(url).toBe('https://example.com/photo.jpg');
+    expect(calls[0]).toContain('searchType=image');
+    expect(calls[0]).toContain('key=key123');
+    expect(calls[0]).toContain('cx=cse123');
+  });
+
+  it('fails soft — no results, a non-OK response, or a thrown error all return null', async () => {
+    vi.stubEnv('GOOGLE_CSE_API_KEY', 'key123'); vi.stubEnv('GOOGLE_CSE_ID', 'cse123');
+    expect(await fetchFallbackImage('x', (async () => new Response(JSON.stringify({}), { status: 200 })) as unknown as typeof fetch)).toBeNull();
+    expect(await fetchFallbackImage('x', (async () => new Response('', { status: 500 })) as unknown as typeof fetch)).toBeNull();
+    expect(await fetchFallbackImage('x', (async () => { throw new Error('network'); }) as unknown as typeof fetch)).toBeNull();
   });
 });

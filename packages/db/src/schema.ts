@@ -69,6 +69,8 @@ export const compositions = pgTable('compositions', {
   seed: bigint('seed', { mode: 'number' }).notNull(),
   renderedAt: timestamp('rendered_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  /** A hand-edited design for this one post. Null means "the layout's own document". */
+  doc: jsonb('doc'),
 }, (t) => ({ accountIdx: index('compositions_account_idx').on(t.accountId, t.createdAt) }));
 
 /** One published (or failed) post per platform. */

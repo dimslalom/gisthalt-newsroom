@@ -306,6 +306,2623 @@
           }
         ]
       }
+    },
+    "full-bleed": {
+      "version": 1,
+      "id": "full-bleed",
+      "name": "Full bleed",
+      "canvas": "portrait-4x5",
+      "root": {
+        "id": "full-bleed-root",
+        "name": "Canvas",
+        "background": {
+          "type": "solid",
+          "colour": {
+            "ref": "bg"
+          }
+        },
+        "padding": {
+          "top": 9,
+          "right": 9,
+          "bottom": 9,
+          "left": 9
+        },
+        "kind": "frame",
+        "axis": "vertical",
+        "gap": 3,
+        "align": "stretch",
+        "justify": "between",
+        "children": [
+          {
+            "id": "full-bleed-photo",
+            "name": "Photo",
+            "position": {
+              "mode": "absolute",
+              "top": 0,
+              "left": 0,
+              "width": 1,
+              "height": 1
+            },
+            "kind": "image",
+            "source": {
+              "type": "field",
+              "field": "imageUrl"
+            },
+            "fit": "cover",
+            "focal": {
+              "x": 0.5,
+              "y": 0.35
+            },
+            "treatment": "none",
+            "scrim": true
+          },
+          {
+            "id": "full-bleed-hdr",
+            "name": "Header",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 2,
+            "align": "center",
+            "justify": "between",
+            "children": [
+              {
+                "id": "full-bleed-eyebrow",
+                "name": "Eyebrow",
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "eyebrow"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "lab",
+                "colour": {
+                  "ref": "accent-text"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 500
+              },
+              {
+                "id": "full-bleed-logo",
+                "name": "Logo",
+                "kind": "logo",
+                "variant": "auto"
+              }
+            ]
+          },
+          {
+            "id": "full-bleed-body",
+            "name": "Body",
+            "height": {
+              "mode": "fill"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 2.5,
+            "align": "start",
+            "justify": "end",
+            "children": [
+              {
+                "id": "full-bleed-quote",
+                "name": "Quote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "quote"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 600
+              },
+              {
+                "id": "full-bleed-headline",
+                "name": "Headline",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "headline"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "fit",
+                "fit": {
+                  "minPx": 34,
+                  "maxPx": 118,
+                  "lines": 3
+                },
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 700
+              },
+              {
+                "id": "full-bleed-subhead",
+                "name": "Subhead",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "subhead"
+                },
+                "font": {
+                  "token": "body"
+                },
+                "step": "body",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 400,
+                "maxLines": 4
+              },
+              {
+                "id": "full-bleed-attrib",
+                "name": "Attribution",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "attribution"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              },
+              {
+                "id": "full-bleed-rows",
+                "name": "Table",
+                "kind": "rows",
+                "source": {
+                  "type": "field",
+                  "field": "rows"
+                },
+                "density": "auto",
+                "columns": [
+                  "rank",
+                  "chip",
+                  "primary",
+                  "secondary",
+                  "value",
+                  "trailing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "full-bleed-foot",
+            "name": "Footer",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 1,
+            "align": "end",
+            "justify": "between",
+            "children": [
+              {
+                "id": "full-bleed-footnote",
+                "name": "Footnote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "footnote"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "big-number": {
+      "version": 1,
+      "id": "big-number",
+      "name": "Big number",
+      "canvas": "portrait-4x5",
+      "root": {
+        "id": "big-number-root",
+        "name": "Canvas",
+        "background": {
+          "type": "solid",
+          "colour": {
+            "ref": "bg"
+          }
+        },
+        "padding": {
+          "top": 8,
+          "right": 8,
+          "bottom": 8,
+          "left": 8
+        },
+        "kind": "frame",
+        "axis": "vertical",
+        "gap": 3,
+        "align": "stretch",
+        "justify": "between",
+        "children": [
+          {
+            "id": "big-number-photo",
+            "name": "Photo",
+            "position": {
+              "mode": "absolute",
+              "top": 0,
+              "left": 0,
+              "width": 1,
+              "height": 1
+            },
+            "kind": "image",
+            "source": {
+              "type": "field",
+              "field": "imageUrl"
+            },
+            "fit": "cover",
+            "focal": {
+              "x": 0.5,
+              "y": 0.35
+            },
+            "treatment": "none",
+            "scrim": true
+          },
+          {
+            "id": "big-number-hdr",
+            "name": "Header",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 2,
+            "align": "center",
+            "justify": "between",
+            "children": [
+              {
+                "id": "big-number-eyebrow",
+                "name": "Eyebrow",
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "eyebrow"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "lab",
+                "colour": {
+                  "ref": "accent-text"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 500
+              },
+              {
+                "id": "big-number-logo",
+                "name": "Logo",
+                "kind": "logo",
+                "variant": "auto"
+              }
+            ]
+          },
+          {
+            "id": "big-number-body",
+            "name": "Body",
+            "height": {
+              "mode": "fill"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 2.5,
+            "align": "start",
+            "justify": "center",
+            "children": [
+              {
+                "id": "big-number-bignum",
+                "name": "Big number",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "bigNumber"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "mega",
+                "colour": {
+                  "ref": "accent-text"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 700
+              },
+              {
+                "id": "big-number-biglabel",
+                "name": "Big number label",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "bigLabel"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "lab",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 500
+              },
+              {
+                "id": "big-number-quote",
+                "name": "Quote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "quote"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 600
+              },
+              {
+                "id": "big-number-headline",
+                "name": "Headline",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "headline"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 700
+              },
+              {
+                "id": "big-number-subhead",
+                "name": "Subhead",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "subhead"
+                },
+                "font": {
+                  "token": "body"
+                },
+                "step": "body",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 400,
+                "maxLines": 4
+              },
+              {
+                "id": "big-number-attrib",
+                "name": "Attribution",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "attribution"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              },
+              {
+                "id": "big-number-rows",
+                "name": "Table",
+                "kind": "rows",
+                "source": {
+                  "type": "field",
+                  "field": "rows"
+                },
+                "density": "auto",
+                "columns": [
+                  "rank",
+                  "chip",
+                  "primary",
+                  "secondary",
+                  "value",
+                  "trailing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "big-number-foot",
+            "name": "Footer",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 1,
+            "align": "end",
+            "justify": "between",
+            "children": [
+              {
+                "id": "big-number-footnote",
+                "name": "Footnote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "footnote"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "quote": {
+    "portrait": {
+      "version": 1,
+      "id": "portrait",
+      "name": "Portrait",
+      "canvas": "portrait-4x5",
+      "root": {
+        "id": "portrait-root",
+        "name": "Canvas",
+        "background": {
+          "type": "solid",
+          "colour": {
+            "ref": "bg"
+          }
+        },
+        "padding": {
+          "top": 8,
+          "right": 8,
+          "bottom": 8,
+          "left": 8
+        },
+        "kind": "frame",
+        "axis": "vertical",
+        "gap": 3,
+        "align": "stretch",
+        "justify": "between",
+        "children": [
+          {
+            "id": "portrait-photo",
+            "name": "Photo",
+            "position": {
+              "mode": "absolute",
+              "top": 0,
+              "right": 0,
+              "width": 1,
+              "height": 0.8
+            },
+            "kind": "image",
+            "source": {
+              "type": "field",
+              "field": "imageUrl"
+            },
+            "fit": "cover",
+            "focal": {
+              "x": 0.5,
+              "y": 0.35
+            },
+            "treatment": "none",
+            "scrim": true
+          },
+          {
+            "id": "portrait-hdrwrap",
+            "name": "Header area",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "padding": {
+              "right": 0
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 0,
+            "align": "stretch",
+            "justify": "start",
+            "children": [
+              {
+                "id": "portrait-hdr",
+                "name": "Header",
+                "height": {
+                  "mode": "hug"
+                },
+                "background": {
+                  "type": "none"
+                },
+                "kind": "frame",
+                "axis": "horizontal",
+                "gap": 2,
+                "align": "center",
+                "justify": "between",
+                "children": [
+                  {
+                    "id": "portrait-eyebrow",
+                    "name": "Eyebrow",
+                    "kind": "text",
+                    "source": {
+                      "type": "field",
+                      "field": "eyebrow"
+                    },
+                    "font": {
+                      "token": "mono"
+                    },
+                    "step": "lab",
+                    "colour": {
+                      "ref": "accent-text"
+                    },
+                    "align": "left",
+                    "transform": "uppercase",
+                    "weight": 500
+                  },
+                  {
+                    "id": "portrait-logo",
+                    "name": "Logo",
+                    "kind": "logo",
+                    "variant": "auto"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "portrait-body",
+            "name": "Body",
+            "height": {
+              "mode": "fill"
+            },
+            "background": {
+              "type": "none"
+            },
+            "padding": {
+              "right": 42
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 2.5,
+            "align": "start",
+            "justify": "end",
+            "children": [
+              {
+                "id": "portrait-quote",
+                "name": "Quote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "quote"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 600
+              },
+              {
+                "id": "portrait-headline",
+                "name": "Headline",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "headline"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "fit",
+                "fit": {
+                  "minPx": 34,
+                  "maxPx": 68,
+                  "lines": 3
+                },
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 700
+              },
+              {
+                "id": "portrait-subhead",
+                "name": "Subhead",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "subhead"
+                },
+                "font": {
+                  "token": "body"
+                },
+                "step": "body",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 400,
+                "maxLines": 4
+              },
+              {
+                "id": "portrait-attrib",
+                "name": "Attribution",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "attribution"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              },
+              {
+                "id": "portrait-rows",
+                "name": "Table",
+                "kind": "rows",
+                "source": {
+                  "type": "field",
+                  "field": "rows"
+                },
+                "density": "auto",
+                "columns": [
+                  "rank",
+                  "chip",
+                  "primary",
+                  "secondary",
+                  "value",
+                  "trailing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "portrait-foot",
+            "name": "Footer",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 1,
+            "align": "end",
+            "justify": "between",
+            "children": [
+              {
+                "id": "portrait-footnote",
+                "name": "Footnote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "footnote"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "classification": {
+    "stacked": {
+      "version": 1,
+      "id": "stacked",
+      "name": "Stacked",
+      "canvas": "portrait-4x5",
+      "root": {
+        "id": "stacked-root",
+        "name": "Canvas",
+        "background": {
+          "type": "solid",
+          "colour": {
+            "ref": "bg"
+          }
+        },
+        "padding": {
+          "top": 8,
+          "right": 8,
+          "bottom": 8,
+          "left": 8
+        },
+        "kind": "frame",
+        "axis": "vertical",
+        "gap": 3,
+        "align": "stretch",
+        "justify": "between",
+        "children": [
+          {
+            "id": "stacked-photo",
+            "name": "Photo",
+            "position": {
+              "mode": "absolute",
+              "bottom": 0,
+              "left": 0,
+              "width": 1,
+              "height": 0.318
+            },
+            "kind": "image",
+            "source": {
+              "type": "field",
+              "field": "imageUrl"
+            },
+            "fit": "cover",
+            "focal": {
+              "x": 0.5,
+              "y": 0.35
+            },
+            "treatment": "none",
+            "scrim": true
+          },
+          {
+            "id": "stacked-hdr",
+            "name": "Header",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 2,
+            "align": "center",
+            "justify": "between",
+            "children": [
+              {
+                "id": "stacked-eyebrow",
+                "name": "Eyebrow",
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "eyebrow"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "lab",
+                "colour": {
+                  "ref": "accent-text"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 500
+              },
+              {
+                "id": "stacked-logo",
+                "name": "Logo",
+                "kind": "logo",
+                "variant": "auto"
+              }
+            ]
+          },
+          {
+            "id": "stacked-body",
+            "name": "Body",
+            "height": {
+              "mode": "fill"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 2.5,
+            "align": "start",
+            "justify": "start",
+            "children": [
+              {
+                "id": "stacked-quote",
+                "name": "Quote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "quote"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 600
+              },
+              {
+                "id": "stacked-headline",
+                "name": "Headline",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "headline"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "fit",
+                "fit": {
+                  "minPx": 34,
+                  "maxPx": 88,
+                  "lines": 3
+                },
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "lowercase",
+                "weight": 700
+              },
+              {
+                "id": "stacked-subhead",
+                "name": "Subhead",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "subhead"
+                },
+                "font": {
+                  "token": "body"
+                },
+                "step": "body",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "lowercase",
+                "weight": 400,
+                "maxLines": 4
+              },
+              {
+                "id": "stacked-attrib",
+                "name": "Attribution",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "attribution"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              },
+              {
+                "id": "stacked-rows",
+                "name": "Table",
+                "kind": "rows",
+                "source": {
+                  "type": "field",
+                  "field": "rows"
+                },
+                "density": "auto",
+                "columns": [
+                  "rank",
+                  "chip",
+                  "primary",
+                  "secondary",
+                  "value",
+                  "trailing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "stacked-spacer",
+            "name": "Photo reserve",
+            "height": {
+              "mode": "fixed",
+              "px": 360
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 0,
+            "align": "stretch",
+            "justify": "start",
+            "children": []
+          },
+          {
+            "id": "stacked-foot",
+            "name": "Footer",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 1,
+            "align": "end",
+            "justify": "between",
+            "children": []
+          },
+          {
+            "id": "tmtzd6cgz1",
+            "name": "Text",
+            "kind": "text",
+            "source": {
+              "type": "field",
+              "field": "footnote"
+            },
+            "font": {
+              "token": "mono"
+            },
+            "step": "fine",
+            "colour": {
+              "ref": "muted"
+            },
+            "align": "left",
+            "transform": "uppercase",
+            "weight": 400
+          }
+        ]
+      }
+    },
+    "framed": {
+      "version": 1,
+      "id": "framed",
+      "name": "Framed",
+      "canvas": "portrait-4x5",
+      "root": {
+        "id": "framed-root",
+        "name": "Canvas",
+        "background": {
+          "type": "solid",
+          "colour": {
+            "ref": "bg"
+          }
+        },
+        "padding": {
+          "top": 11,
+          "right": 11,
+          "bottom": 11,
+          "left": 11
+        },
+        "kind": "frame",
+        "axis": "vertical",
+        "gap": 3,
+        "align": "stretch",
+        "justify": "between",
+        "children": [
+          {
+            "id": "framed-photo",
+            "name": "Photo",
+            "position": {
+              "mode": "absolute",
+              "top": 0,
+              "left": 0,
+              "width": 1,
+              "height": 1
+            },
+            "kind": "image",
+            "source": {
+              "type": "field",
+              "field": "imageUrl"
+            },
+            "fit": "cover",
+            "focal": {
+              "x": 0.5,
+              "y": 0.35
+            },
+            "treatment": "none",
+            "scrim": true
+          },
+          {
+            "id": "framed-hdr",
+            "name": "Header",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 2,
+            "align": "center",
+            "justify": "between",
+            "children": [
+              {
+                "id": "framed-eyebrow",
+                "name": "Eyebrow",
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "eyebrow"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "lab",
+                "colour": {
+                  "ref": "accent-text"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 500
+              },
+              {
+                "id": "framed-logo",
+                "name": "Logo",
+                "kind": "logo",
+                "variant": "auto"
+              }
+            ]
+          },
+          {
+            "id": "framed-body",
+            "name": "Body",
+            "height": {
+              "mode": "fill"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 2.5,
+            "align": "center",
+            "justify": "center",
+            "children": [
+              {
+                "id": "framed-quote",
+                "name": "Quote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "quote"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "center",
+                "transform": "none",
+                "weight": 600
+              },
+              {
+                "id": "framed-headline",
+                "name": "Headline",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "headline"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "fit",
+                "fit": {
+                  "minPx": 34,
+                  "maxPx": 68,
+                  "lines": 3
+                },
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "center",
+                "transform": "lowercase",
+                "weight": 700
+              },
+              {
+                "id": "framed-subhead",
+                "name": "Subhead",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "subhead"
+                },
+                "font": {
+                  "token": "body"
+                },
+                "step": "body",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "center",
+                "transform": "lowercase",
+                "weight": 400,
+                "maxLines": 4
+              },
+              {
+                "id": "framed-attrib",
+                "name": "Attribution",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "attribution"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "center",
+                "transform": "uppercase",
+                "weight": 400
+              },
+              {
+                "id": "framed-rows",
+                "name": "Table",
+                "kind": "rows",
+                "source": {
+                  "type": "field",
+                  "field": "rows"
+                },
+                "density": "auto",
+                "columns": [
+                  "rank",
+                  "chip",
+                  "primary",
+                  "secondary",
+                  "value",
+                  "trailing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "framed-foot",
+            "name": "Footer",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 1,
+            "align": "end",
+            "justify": "between",
+            "children": [
+              {
+                "id": "framed-footnote",
+                "name": "Footnote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "footnote"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "split": {
+      "version": 1,
+      "id": "split",
+      "name": "Split",
+      "canvas": "portrait-4x5",
+      "root": {
+        "id": "split-root",
+        "name": "Canvas",
+        "background": {
+          "type": "solid",
+          "colour": {
+            "ref": "bg"
+          }
+        },
+        "padding": {
+          "top": 8,
+          "right": 8,
+          "bottom": 8,
+          "left": 8
+        },
+        "kind": "frame",
+        "axis": "vertical",
+        "gap": 3,
+        "align": "stretch",
+        "justify": "between",
+        "children": [
+          {
+            "id": "split-photo",
+            "name": "Photo",
+            "position": {
+              "mode": "absolute",
+              "top": 0,
+              "left": 0,
+              "width": 1,
+              "height": 0.385
+            },
+            "kind": "image",
+            "source": {
+              "type": "field",
+              "field": "imageUrl"
+            },
+            "fit": "cover",
+            "focal": {
+              "x": 0.5,
+              "y": 0.35
+            },
+            "treatment": "none",
+            "scrim": true
+          },
+          {
+            "id": "split-hdr",
+            "name": "Header",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 2,
+            "align": "center",
+            "justify": "between",
+            "children": [
+              {
+                "id": "split-eyebrow",
+                "name": "Eyebrow",
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "eyebrow"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "lab",
+                "colour": {
+                  "ref": "accent-text"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 500
+              },
+              {
+                "id": "split-logo",
+                "name": "Logo",
+                "kind": "logo",
+                "variant": "auto"
+              }
+            ]
+          },
+          {
+            "id": "split-spacer",
+            "name": "Photo reserve",
+            "height": {
+              "mode": "fixed",
+              "px": 420
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 0,
+            "align": "stretch",
+            "justify": "start",
+            "children": []
+          },
+          {
+            "id": "split-body",
+            "name": "Body",
+            "height": {
+              "mode": "fill"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 2.5,
+            "align": "start",
+            "justify": "start",
+            "children": [
+              {
+                "id": "split-quote",
+                "name": "Quote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "quote"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 600
+              },
+              {
+                "id": "split-headline",
+                "name": "Headline",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "headline"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "fit",
+                "fit": {
+                  "minPx": 34,
+                  "maxPx": 68,
+                  "lines": 3
+                },
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 700
+              },
+              {
+                "id": "split-subhead",
+                "name": "Subhead",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "subhead"
+                },
+                "font": {
+                  "token": "body"
+                },
+                "step": "body",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 400,
+                "maxLines": 4
+              },
+              {
+                "id": "split-attrib",
+                "name": "Attribution",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "attribution"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              },
+              {
+                "id": "split-rows",
+                "name": "Table",
+                "kind": "rows",
+                "source": {
+                  "type": "field",
+                  "field": "rows"
+                },
+                "density": "auto",
+                "columns": [
+                  "rank",
+                  "chip",
+                  "primary",
+                  "secondary",
+                  "value",
+                  "trailing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "split-foot",
+            "name": "Footer",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 1,
+            "align": "end",
+            "justify": "between",
+            "children": [
+              {
+                "id": "split-footnote",
+                "name": "Footnote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "footnote"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "standings": {
+    "big-number": {
+      "version": 1,
+      "id": "big-number",
+      "name": "Big number",
+      "canvas": "portrait-4x5",
+      "root": {
+        "id": "big-number-root",
+        "name": "Canvas",
+        "background": {
+          "type": "solid",
+          "colour": {
+            "ref": "bg"
+          }
+        },
+        "padding": {
+          "top": 8,
+          "right": 8,
+          "bottom": 8,
+          "left": 8
+        },
+        "kind": "frame",
+        "axis": "vertical",
+        "gap": 3,
+        "align": "stretch",
+        "justify": "between",
+        "children": [
+          {
+            "id": "big-number-photo",
+            "name": "Photo",
+            "position": {
+              "mode": "absolute",
+              "top": 0,
+              "left": 0,
+              "width": 1,
+              "height": 1
+            },
+            "kind": "image",
+            "source": {
+              "type": "field",
+              "field": "imageUrl"
+            },
+            "fit": "cover",
+            "focal": {
+              "x": 0.5,
+              "y": 0.35
+            },
+            "treatment": "none",
+            "scrim": true
+          },
+          {
+            "id": "big-number-hdr",
+            "name": "Header",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 2,
+            "align": "center",
+            "justify": "between",
+            "children": [
+              {
+                "id": "big-number-eyebrow",
+                "name": "Eyebrow",
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "eyebrow"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "lab",
+                "colour": {
+                  "ref": "accent-text"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 500
+              },
+              {
+                "id": "big-number-logo",
+                "name": "Logo",
+                "kind": "logo",
+                "variant": "auto"
+              }
+            ]
+          },
+          {
+            "id": "big-number-body",
+            "name": "Body",
+            "height": {
+              "mode": "fill"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 2.5,
+            "align": "start",
+            "justify": "center",
+            "children": [
+              {
+                "id": "big-number-bignum",
+                "name": "Big number",
+                "background": {
+                  "type": "none"
+                },
+                "padding": {
+                  "top": 3,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "bigNumber"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "mega",
+                "colour": {
+                  "ref": "accent-text"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 700
+              },
+              {
+                "id": "big-number-biglabel",
+                "name": "Big number label",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "bigLabel"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "lab",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 500
+              },
+              {
+                "id": "big-number-quote",
+                "name": "Quote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "quote"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 600
+              },
+              {
+                "id": "big-number-headline",
+                "name": "Headline",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "headline"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 700
+              },
+              {
+                "id": "big-number-subhead",
+                "name": "Subhead",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "subhead"
+                },
+                "font": {
+                  "token": "body"
+                },
+                "step": "body",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "none",
+                "weight": 400,
+                "maxLines": 4
+              },
+              {
+                "id": "big-number-attrib",
+                "name": "Attribution",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "attribution"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              },
+              {
+                "id": "big-number-rows",
+                "name": "Table",
+                "kind": "rows",
+                "source": {
+                  "type": "field",
+                  "field": "rows"
+                },
+                "density": "auto",
+                "columns": [
+                  "rank",
+                  "chip",
+                  "primary",
+                  "secondary",
+                  "value",
+                  "trailing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "big-number-foot",
+            "name": "Footer",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 1,
+            "align": "end",
+            "justify": "between",
+            "children": [
+              {
+                "id": "big-number-footnote",
+                "name": "Footnote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "footnote"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "framed": {
+      "version": 1,
+      "id": "framed",
+      "name": "Framed",
+      "canvas": "portrait-4x5",
+      "root": {
+        "id": "framed-root",
+        "name": "Canvas",
+        "background": {
+          "type": "solid",
+          "colour": {
+            "ref": "bg"
+          }
+        },
+        "padding": {
+          "top": 11,
+          "right": 11,
+          "bottom": 11,
+          "left": 11
+        },
+        "kind": "frame",
+        "axis": "vertical",
+        "gap": 3,
+        "align": "stretch",
+        "justify": "between",
+        "children": [
+          {
+            "id": "framed-photo",
+            "name": "Photo",
+            "position": {
+              "mode": "absolute",
+              "top": 0,
+              "left": 0,
+              "width": 1,
+              "height": 1
+            },
+            "kind": "image",
+            "source": {
+              "type": "field",
+              "field": "imageUrl"
+            },
+            "fit": "cover",
+            "focal": {
+              "x": 0.5,
+              "y": 0.35
+            },
+            "treatment": "none",
+            "scrim": true
+          },
+          {
+            "id": "framed-hdr",
+            "name": "Header",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 2,
+            "align": "center",
+            "justify": "between",
+            "children": [
+              {
+                "id": "framed-eyebrow",
+                "name": "Eyebrow",
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "eyebrow"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "lab",
+                "colour": {
+                  "ref": "accent-text"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 500
+              },
+              {
+                "id": "framed-logo",
+                "name": "Logo",
+                "kind": "logo",
+                "variant": "auto"
+              }
+            ]
+          },
+          {
+            "id": "framed-body",
+            "name": "Body",
+            "height": {
+              "mode": "fill"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "vertical",
+            "gap": 2.5,
+            "align": "center",
+            "justify": "center",
+            "children": [
+              {
+                "id": "framed-quote",
+                "name": "Quote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "quote"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "h2",
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "center",
+                "transform": "none",
+                "weight": 600
+              },
+              {
+                "id": "framed-headline",
+                "name": "Headline",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "headline"
+                },
+                "font": {
+                  "token": "display"
+                },
+                "step": "fit",
+                "fit": {
+                  "minPx": 34,
+                  "maxPx": 68,
+                  "lines": 3
+                },
+                "colour": {
+                  "ref": "fg"
+                },
+                "align": "center",
+                "transform": "none",
+                "weight": 700
+              },
+              {
+                "id": "framed-subhead",
+                "name": "Subhead",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "subhead"
+                },
+                "font": {
+                  "token": "body"
+                },
+                "step": "body",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "center",
+                "transform": "none",
+                "weight": 400,
+                "maxLines": 4
+              },
+              {
+                "id": "framed-attrib",
+                "name": "Attribution",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "attribution"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "center",
+                "transform": "uppercase",
+                "weight": 400
+              },
+              {
+                "id": "framed-rows",
+                "name": "Table",
+                "kind": "rows",
+                "source": {
+                  "type": "field",
+                  "field": "rows"
+                },
+                "density": "auto",
+                "columns": [
+                  "rank",
+                  "chip",
+                  "primary",
+                  "secondary",
+                  "value",
+                  "trailing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "framed-foot",
+            "name": "Footer",
+            "height": {
+              "mode": "hug"
+            },
+            "background": {
+              "type": "none"
+            },
+            "kind": "frame",
+            "axis": "horizontal",
+            "gap": 1,
+            "align": "end",
+            "justify": "between",
+            "children": [
+              {
+                "id": "framed-footnote",
+                "name": "Footnote",
+                "background": {
+                  "type": "solid",
+                  "colour": {
+                    "ref": "bg"
+                  }
+                },
+                "padding": {
+                  "top": 1,
+                  "right": 1.5,
+                  "bottom": 1,
+                  "left": 1.5
+                },
+                "kind": "text",
+                "source": {
+                  "type": "field",
+                  "field": "footnote"
+                },
+                "font": {
+                  "token": "mono"
+                },
+                "step": "fine",
+                "colour": {
+                  "ref": "muted"
+                },
+                "align": "left",
+                "transform": "uppercase",
+                "weight": 400
+              }
+            ]
+          }
+        ]
+      }
     }
   }
 }

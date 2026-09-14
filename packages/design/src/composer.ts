@@ -1,8 +1,9 @@
 import { pickBest, seedFrom, type Candidate, type HistoryEntry } from '@newsroom/core';
 import type { Claim } from '@newsroom/core';
 import { ContrastError, assertContrast } from './guards/contrast.ts';
-import { accentSets, LONG_HEADLINE, TYPOGRAPHY_ONLY } from './skins.ts';
+import { accentSets } from './skins.ts';
 import { isLayoutShippable } from './passing.ts';
+import { resolvedLayouts } from './layout-slots.ts';
 import { resolveColours } from './template.ts';
 import type { Brand, CompositionSpec, LayoutKey, Skin } from './types.ts';
 
@@ -37,26 +38,26 @@ export function compose(input: ComposeInput): CompositionSpec & { seed: number }
   const archetype = chooseArchetype(brand, claim.claimType);
   const model = archetype.model(claim);
 
-  let layouts = input.allowUncertified ? [...archetype.layouts] : archetype.layouts.filter((l) => isLayoutShippable(brand.key, archetype.key, l));
-  if (layouts.length === 0) throw new Error(`no certified layout for ${brand.key}/${archetype.key}; run the full golden matrix`);
+  const slots = resolvedLayouts(brand.key, archetype.key, archetype.layouts);
+  let slotCandidates = input.allowUncertified ? slots : slots.filter((s) => isLayoutShippable(brand.key, archetype.key, s.key));
+  if (slotCandidates.length === 0) throw new Error(`no certified layout for ${brand.key}/${archetype.key}; run the full golden matrix`);
   // image-missing must fall back to a typography-only variant, never a grey box.
   if (!hasImage) {
-    const typographic = layouts.filter((l) => TYPOGRAPHY_ONLY.includes(l));
-    if (typographic.length) layouts = typographic;
+    const typographic = slotCandidates.filter((s) => s.worksWithoutImage);
+    if (typographic.length) slotCandidates = typographic;
   }
   // A very long headline escapes to a layout built for one.
   if (model.headline.length > 78) {
-    const roomy = layouts.filter((l) => LONG_HEADLINE.includes(l));
-    if (roomy.length) layouts = roomy;
+    const roomy = slotCandidates.filter((s) => s.handlesLongHeadline);
+    if (roomy.length) slotCandidates = roomy;
   }
+  const layouts = slotCandidates.map((s) => s.key);
 
   const skins = brand.skins;
   const candidates: Candidate[] = [];
   for (const layout of layouts) {
     for (const skin of skins) {
       for (const accents of accentSets()) {
-        // A watermark needs something short to draw; skip when there is nothing.
-        if (accents.includes('watermark') && !model.bigNumber && model.eyebrow.length < 2) continue;
         const spec: CompositionSpec = { brand, archetype, layout, skin, accents, model };
         try {
           resolveColours(spec); // throws ContrastError on an unreadable pairing
@@ -99,8 +100,8 @@ export function enumerateVariants(brand: Brand, archetypeKey: string): { layout:
   const a = brand.archetypes.find((x) => x.key === archetypeKey);
   if (!a) return [];
   const out: { layout: LayoutKey; skin: string; accents: string[] }[] = [];
-  for (const layout of a.layouts) for (const skin of brand.skins) for (const accents of accentSets()) {
-    out.push({ layout, skin: skin.key, accents });
+  for (const slot of resolvedLayouts(brand.key, a.key, a.layouts)) for (const skin of brand.skins) for (const accents of accentSets()) {
+    out.push({ layout: slot.key, skin: skin.key, accents });
   }
   return out;
 }

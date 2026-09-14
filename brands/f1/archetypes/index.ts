@@ -1,4 +1,4 @@
-import { DASH, dateId, gap, lapTime, num, pos, text } from '@newsroom/core';
+import { DASH, dateId, gap, lapTime, num, pos, safeHeadline, text } from '@newsroom/core';
 import type { Claim } from '@newsroom/core';
 import type { Archetype, ArtModel, TableRow } from '@newsroom/design';
 import { resolveEntity } from '../entities.ts';
@@ -68,7 +68,13 @@ export const archetypes: Archetype[] = [
         // A mega-sized dash is a bug, not a fallback: drop the block instead.
         bigNumber: p ? `P${p}` : undefined,
         bigLabel: p ? sess(claim) : undefined,
-        headline: driver === DASH ? 'Hasil sesi' : driver,
+        // Prose news carries an editorial headline; structured result cards
+        // retain the short driver label alongside their position number.
+        // safeHeadline refuses an 'unextracted' claim.headline — that's the
+        // raw scraped English title, never a translated one.
+        headline: claim.sourceTier !== 'A'
+          ? safeHeadline(claim, driver === DASH ? 'Hasil sesi' : driver)
+          : (driver === DASH ? 'Hasil sesi' : driver),
         subhead: [team !== DASH ? team : null, lapTime(n(claim.values.duration)) !== DASH ? lapTime(n(claim.values.duration)) : null]
           .filter(Boolean).join('  ·  ') || undefined,
         footnote: footer(claim),
@@ -106,7 +112,7 @@ export const archetypes: Archetype[] = [
       const leader = rows[0];
       return {
         eyebrow: `KLASEMEN ${s(claim.values.season)} · RONDE ${num(n(claim.values.round))}`,
-        headline: claim.headline ?? 'Klasemen Pembalap',
+        headline: safeHeadline(claim, 'Klasemen Pembalap'),
         rows: toTableRows(rows, 10, 'points'),
         bigNumber: leader?.points != null ? String(leader.points) : undefined,
         bigLabel: leader ? `POIN · ${s(leader.driver)}` : undefined,
@@ -187,8 +193,19 @@ export const archetypes: Archetype[] = [
       return {
         eyebrow: meetingLine(claim),
         quote: claim.values.quote || claim.supportingQuote ? `“${s(claim.values.quote ?? claim.supportingQuote)}”` : undefined,
-        headline: claim.claimType === 'article' || claim.claimType === 'document' ? claim.headline ?? s(claim.entities.title) : s(claim.entities.speaker ?? claim.entities.driver),
-        attribution: s(claim.entities.team),
+        // claim.entities.title only ever holds the raw source title (the
+        // 'unextracted' fallback sets it verbatim from item.title, and a
+        // real extraction never populates 'title' at all) — never a safe
+        // fallback, so both branches fall back to a generic Indonesian label
+        // instead of it.
+        headline: claim.claimType === 'article' || claim.claimType === 'document'
+          ? safeHeadline(claim, 'Kabar F1')
+          : s(claim.entities.speaker ?? claim.entities.driver) !== DASH
+            ? s(claim.entities.speaker ?? claim.entities.driver)
+            : safeHeadline(claim, 'Kabar F1'),
+        // Omitted, not dashed: s() draws "–" for a missing value, which renders
+        // as an empty plate under the headline on every post without a team.
+        attribution: claim.entities.team ? s(claim.entities.team) : undefined,
         footnote: footer(claim),
         entity: resolveEntity(claim.entities.team ?? null),
         imageUrl: claim.imageUrl ?? null,

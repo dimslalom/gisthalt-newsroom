@@ -1,5 +1,5 @@
 import type { Claim, Vertical } from '@newsroom/core';
-import { DASH, dateId, text } from '@newsroom/core';
+import { DASH, dateId, safeHeadline, text } from '@newsroom/core';
 import { SKINS, type Brand, type LayoutKey, type ArtModel } from '@newsroom/design';
 import { genericTokens as tokens } from './generic-tokens.ts';
 import { blocklist, hedgeTerms } from './f1/blocklist.ts';
@@ -10,7 +10,12 @@ export function makeBrand(config: VerticalConfig): Brand {
     key: a.key, claimTypes: a.types, layouts: layouts[i]!,
     model(c: Claim): ArtModel {
       const rows = Array.isArray(c.values.rows) ? c.values.rows as Record<string, unknown>[] : [];
-      const headline = c.headline ?? c.entities.title ?? ([c.entities.team1, c.entities.team2].filter(Boolean).join(' vs ') || a.label);
+      // entities.title is a real field for a structured release/cast/trailer
+      // claim, but for an 'unextracted' claim it's the exact same raw source
+      // title as headline (extract.ts sets both to item.title) — trusting it
+      // there just swaps which untranslated string leaks onto the graphic.
+      const titleFallback = c.tags?.includes('unextracted') ? undefined : c.entities.title;
+      const headline = safeHeadline(c, titleFallback ?? ([c.entities.team1, c.entities.team2].filter(Boolean).join(' vs ') || a.label));
       const revenue = typeof c.values.revenue === 'number' ? `${c.values.currency ?? ''} ${new Intl.NumberFormat('id-ID').format(c.values.revenue)}`.trim() : undefined;
       const score = typeof c.values.score1 === 'number' && typeof c.values.score2 === 'number' ? `${c.values.score1}-${c.values.score2}` : undefined;
       return {

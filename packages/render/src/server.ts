@@ -4,10 +4,12 @@ import { basename, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import {
   clearLayoutOverride, compose, composeCarousel, enumerateVariants, getLayoutOverride, saveLayoutOverride,
-  getLayoutDoc, saveLayoutDoc, deleteLayoutDoc, seedDoc, presentFields, FIELDS, CANVASES, CANVAS_KEYS,
+  getLayoutDoc, saveLayoutDoc, deleteLayoutDoc, seedDoc, presentFields, readField, FIELDS, CANVASES, CANVAS_KEYS,
   loadThemeOverride, saveThemeOverride, clearThemeOverride, FONT_SLOTS,
+  resolvedLayouts, addLayoutSlot, removeLayoutSlot,
+  isLayoutShippable, loadPassing, resetPassingCache, deriveLayout, suggestTransforms,
   type Brand, type CanvasKey, type CompositionSpec, type LayoutKey, type LayoutOverride,
-  type SkinColourRole, type FontSlot, type ThemeOverride, type LetterSpacingSlot,
+  type SkinColourRole, type FontSlot, type ThemeOverride, type LetterSpacingSlot, type DeriveTransform,
 } from '@newsroom/design';
 import type { Claim } from '@newsroom/core';
 import { brandByKey, brands } from '@newsroom/brands';
@@ -16,6 +18,7 @@ import { renderComposition } from './render.ts';
 import { fetchGoogleFont } from './google-fonts.ts';
 import { pinUploadedFont } from './custom-font.ts';
 import { invalidateBrandFontsCache } from './fonts.ts';
+import { verticalStill } from './export.ts';
 
 const OUT = resolve(process.env.RENDER_OUT_DIR ?? './.data/renders');
 
@@ -31,9 +34,14 @@ const OUT = resolve(process.env.RENDER_OUT_DIR ?? './.data/renders');
 interface GoldenJob { running: boolean; checked: number; total: number; done: boolean; passed?: number; error?: string; startedAt?: number; finishedAt?: number }
 let goldenJob: GoldenJob = { running: false, checked: 0, total: 0, done: false };
 
-function startGoldenRun(): void {
+/** `layout`, when given, is "<brand>/<archetype>/<layout>" — scopes the run
+ *  to that one triple (still against the full fixture set, so it can still
+ *  certify), matching render-goldens.ts's own --layout= safety rule. */
+function startGoldenRun(layout?: string): void {
   goldenJob = { running: true, checked: 0, total: 0, done: false, startedAt: Date.now() };
-  const child = spawn(process.execPath, ['--experimental-strip-types', 'scripts/render-goldens.ts', '--update'], {
+  const args = ['--experimental-strip-types', 'scripts/render-goldens.ts', '--update'];
+  if (layout) args.push(`--layout=${layout}`);
+  const child = spawn(process.execPath, args, {
     cwd: process.cwd(), env: process.env,
   });
   let outBuf = '', errBuf = '';
@@ -50,6 +58,11 @@ function startGoldenRun(): void {
   child.stderr.on('data', (chunk: Buffer) => { errBuf += chunk.toString(); });
   child.on('error', (e) => { goldenJob = { ...goldenJob, running: false, done: true, error: e.message, finishedAt: Date.now() }; });
   child.on('exit', (code) => {
+    // The child just rewrote fixtures/passing.json from its own process; this
+    // server's loadPassing() cached the old one and never sees the new file
+    // on its own — every isLayoutShippable() call (compose(), the worklist)
+    // would otherwise keep reporting yesterday's certification forever.
+    resetPassingCache();
     goldenJob = {
       ...goldenJob, running: false, done: true, finishedAt: Date.now(),
       error: code !== 0 ? (errBuf.trim().slice(-4000) || `certification exited with code ${code}`) : undefined,
@@ -82,7 +95,7 @@ function specFor(body: RenderBody): { spec: CompositionSpec; imagePath: string |
   const requested = body.archetype ? brand.archetypes.find(a=>a.key===body.archetype) : undefined;
   if (body.archetype && !requested) throw new Error('unknown archetype');
   if (fixture && requested) claim = {...claim, vertical:brand.vertical, claimType:requested.claimTypes[0]!};
-  if (body.layout && requested && !requested.layouts.includes(body.layout)) throw new Error('layout is not supported by archetype');
+  if (body.layout && requested && !resolvedLayouts(brand.key, requested.key, requested.layouts).some((s) => s.key === body.layout)) throw new Error('layout is not supported by archetype');
   if (body.skin && !brand.skins.some(s=>s.key===body.skin)) throw new Error('unknown skin');
   if (body.accents && (body.accents.length > 2 || new Set(body.accents).size !== body.accents.length || body.accents.some(a=>!['diagonal','halftone','grain','ticker','watermark','cropmarks'].includes(a)))) throw new Error('invalid accents');
   const imagePath = body.imagePath ?? fixture?.imagePath ?? null;
@@ -138,7 +151,10 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
           brands: brands.map((b) => ({ key: b.key, name: b.name })),
           fixtures: fixtureNames(),
           skins: brand.skins.map((s) => s.key),
-          archetypes: brand.archetypes.map((a) => ({ key: a.key, layouts: a.layouts, claimTypes: a.claimTypes })),
+          archetypes: brand.archetypes.map((a) => ({
+            key: a.key, claimTypes: a.claimTypes,
+            layouts: resolvedLayouts(brand.key, a.key, a.layouts).map((s) => s.key),
+          })),
         });
       }
 
@@ -165,7 +181,25 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
           // Which optional fields this claim actually carries, so the editor can
           // grey out bindings that would vanish on the sample being previewed.
           present: [...presentFields(spec.model, spec.brand)],
+          // The actual wording behind each text field, so switching a layer to
+          // static text for one post starts from the post's real copy.
+          fieldValues: Object.fromEntries(FIELDS.filter((f) => f.type === 'text')
+            .map((f) => [f.key, readField(f.key, spec.model, spec.brand)])
+            .filter(([, v]) => v)),
         });
+      }
+
+      /** A render re-framed to TikTok's 9:16 — the same frame the publisher
+       *  would upload, for posting by hand. Only files the renderer itself
+       *  wrote are reachable, same rule as /renders/. */
+      if (url.pathname === '/export' && req.method === 'GET') {
+        const path = url.searchParams.get('path') ?? '';
+        if (!path.startsWith('/renders/')) return json(res, 400, { error: 'path must be a /renders/ file' });
+        const file = join(OUT, basename(path));
+        if (!existsSync(file)) return json(res, 404, { error: 'render not found' });
+        const buf = await verticalStill(file);
+        res.writeHead(200, { 'content-type': 'image/png', 'content-length': buf.length, 'cache-control': 'no-store' });
+        return res.end(buf);
       }
 
       if (url.pathname === '/carousel' && req.method === 'POST') {
@@ -244,6 +278,82 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
         if (!body.archetype || !body.layout) return json(res, 400, { error: 'archetype and layout are required' });
         deleteLayoutDoc(body.brand ?? 'f1', body.archetype, body.layout);
         return json(res, 200, { doc: null });
+      }
+
+      /** Applies a sequence of mechanical transforms to a source layout's
+       *  document (or its seed, if it has none saved) and hands back the
+       *  result WITHOUT saving it — a proposal to preview and either accept
+       *  (save normally via POST /layout-doc under the target layout) or
+       *  discard. Never invented design judgement, only reviewable moves. */
+      if (url.pathname === '/layout-doc/derive' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; archetype?: string; fromLayout?: string; toLayout?: string; transforms?: DeriveTransform[] };
+        const brandKey = body.brand ?? 'f1';
+        if (!body.archetype || !body.fromLayout) return json(res, 400, { error: 'archetype and fromLayout are required' });
+        brandByKey(brandKey);
+        const source = getLayoutDoc(brandKey, body.archetype, body.fromLayout) ?? seedDoc(body.fromLayout);
+        // Explicit transforms win; otherwise offer the mechanical guess for
+        // this pair (e.g. hero-left -> hero-right is a mirror) as a starting
+        // point the designer still reviews before it's ever saved anywhere.
+        const transforms = body.transforms ?? (body.toLayout ? suggestTransforms(body.fromLayout, body.toLayout) : []);
+        const derived = deriveLayout(source, transforms);
+        return json(res, 200, { doc: derived, transforms });
+      }
+
+      /* -------------------------------------------------------- layout slots */
+      // Which layouts an archetype offers — the compiled eight, plus/minus
+      // whatever this brand added or removed at runtime. See layout-slots.ts.
+
+      if (url.pathname === '/layout-slots' && req.method === 'GET') {
+        const brandKey = url.searchParams.get('brand') ?? 'f1';
+        const brand = brandByKey(brandKey);
+        return json(res, 200, {
+          archetypes: brand.archetypes.map((a) => ({
+            key: a.key, slots: resolvedLayouts(brandKey, a.key, a.layouts), builtins: a.layouts,
+          })),
+        });
+      }
+
+      if (url.pathname === '/layout-slots/add' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; archetype?: string; slot?: unknown };
+        const brandKey = body.brand ?? 'f1';
+        if (!body.archetype) return json(res, 400, { error: 'archetype is required' });
+        brandByKey(brandKey);
+        try {
+          const file = addLayoutSlot(brandKey, body.archetype, body.slot);
+          return json(res, 200, { slots: file });
+        } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+      }
+
+      if (url.pathname === '/layout-slots/remove' && req.method === 'POST') {
+        const body = JSON.parse(await readBody(req)) as { brand?: string; archetype?: string; key?: string };
+        const brandKey = body.brand ?? 'f1';
+        if (!body.archetype || !body.key) return json(res, 400, { error: 'archetype and key are required' });
+        const brand = brandByKey(brandKey);
+        const archetype = brand.archetypes.find((a) => a.key === body.archetype);
+        if (!archetype) return json(res, 400, { error: 'unknown archetype' });
+        try {
+          const file = removeLayoutSlot(brandKey, body.archetype, body.key, archetype.layouts);
+          return json(res, 200, { slots: file });
+        } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+      }
+
+      /** The worklist: every archetype × slot for one brand, with its design
+       *  status — the coverage table /design is built from. */
+      if (url.pathname === '/worklist' && req.method === 'GET') {
+        const brandKey = url.searchParams.get('brand') ?? 'f1';
+        const brand = brandByKey(brandKey);
+        const manifest = loadPassing();
+        const rows = brand.archetypes.flatMap((a) => resolvedLayouts(brandKey, a.key, a.layouts).map((slot) => {
+          const doc = getLayoutDoc(brandKey, a.key, slot.key);
+          const cert = manifest?.layouts[`${brandKey}/${a.key}/${slot.key}`];
+          let status: 'no-document' | 'uncertified' | 'certified' | 'failing';
+          if (cert && cert.ok === false) status = 'failing';
+          else if (!doc) status = 'no-document';
+          else if (isLayoutShippable(brandKey, a.key, slot.key, manifest)) status = 'certified';
+          else status = 'uncertified';
+          return { archetype: a.key, layout: slot.key, label: slot.label, custom: !a.layouts.includes(slot.key), hasDocument: Boolean(doc), status };
+        }));
+        return json(res, 200, { rows });
       }
 
       /* --------------------------------------------------------- brand theme */
@@ -328,7 +438,8 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
 
       if (url.pathname === '/goldens/run' && req.method === 'POST') {
         if (goldenJob.running) return json(res, 409, { error: 'a certification run is already in progress' });
-        startGoldenRun();
+        const body = JSON.parse(await readBody(req)) as { layout?: string };
+        startGoldenRun(body.layout);
         return json(res, 202, { started: true });
       }
 

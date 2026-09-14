@@ -52,9 +52,17 @@ export interface Archetype {
   model(claim: Claim): ArtModel;
 }
 
-export type LayoutKey =
-  | 'hero-left' | 'hero-right' | 'full-bleed' | 'framed'
-  | 'split' | 'stacked' | 'big-number' | 'portrait';
+/** The eight shipped layouts. A brand may add its own slots at runtime (see
+ *  layout-slots.ts) — these stay the seed sources, the CSS-template fallback,
+ *  and the built-in derive-siblings targets, never the whole selectable set. */
+export const BUILTIN_LAYOUTS = [
+  'hero-left', 'hero-right', 'full-bleed', 'framed', 'split', 'stacked', 'big-number', 'portrait',
+] as const;
+export type BuiltinLayoutKey = (typeof BUILTIN_LAYOUTS)[number];
+/** A layout slot key — one of the eight built-ins, or a brand-added custom
+ *  slot. Kept as a plain string, not a closed union, because the set is
+ *  editable at runtime. */
+export type LayoutKey = string;
 
 export interface TableRow {
   rank: string;

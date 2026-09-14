@@ -132,7 +132,7 @@ export function AccountsBoard({ groups }: { groups: BrandGroup[] }) {
   return (
     <div style={{ display: 'grid', gap: 28 }} aria-busy={Boolean(loading)}>
       {loading && <div className={styles.loading} role="status" aria-live="polite"><span className={styles.spinner} aria-hidden="true" /><strong>{loading}</strong><small>Please keep this page open.</small></div>}
-      <nav className="row" aria-label="Publishing brands" style={{flexWrap:'wrap'}}>{groups.map(g=><button key={g.key} aria-pressed={selected===g.key} onClick={()=>setSelected(g.key)} className={selected===g.key?'primary':undefined}>{g.name} · {g.accounts.length} platforms</button>)}</nav>
+      <nav className="row" aria-label="Publishing brands" style={{flexWrap:'wrap'}}>{groups.map(g=><button key={g.key} aria-pressed={selected===g.key} onClick={()=>setSelected(g.key)} className={selected===g.key?'primary':undefined}><span className="metadata" style={{color:'inherit'}}><span>{g.name}</span><span>{g.accounts.length} platforms</span></span></button>)}</nav>
       {groups.filter(g=>g.key===selected).map((g) => (
         <section key={g.key}>
           <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>

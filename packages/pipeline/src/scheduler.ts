@@ -7,6 +7,7 @@ import { gateClaim } from './stages/gate.ts';
 import { composeClaim, PLATFORMS } from './stages/compose.ts';
 import { enqueuePost } from './stages/publish.ts';
 import { accountForClaim, prepareReview, releaseHeldIfCorroborated } from './review.ts';
+import { attachResultsCarousel } from './results-carousel.ts';
 import { seedAccounts } from './seed.ts';
 import { workspaceBrand } from '@newsroom/brands';
 
@@ -25,7 +26,16 @@ export async function startWorkers() {
     },
     gate: async (payload) => {
       const { id } = payload as { id: string };
-      await withCtx((ctx) => { const claim = ctx.store.getClaim(id); if (claim && !ctx.store.decisions.some((d) => d.claimId === id)) gateClaim(ctx, claim); });
+      await withCtx(async (ctx) => {
+        const claim = ctx.store.getClaim(id);
+        if (!claim || ctx.store.decisions.some((d) => d.claimId === id)) return;
+        const outcome = gateClaim(ctx, claim);
+        if (outcome.outcome !== 'review') return;
+        const review = ctx.store.reviews.find((r) => r.claimId === id && r.state === 'pending');
+        if (!review) return;
+        await attachResultsCarousel(ctx, claim, review.id).catch((e) =>
+          ctx.store.log({ stage: 'review', level: 'warn', msg: 'results carousel attach failed', dedupeHash: claim.dedupeHash, latencyMs: null, meta: { reviewId: review.id, error: (e as Error).message } }));
+      });
     },
     compose: async (payload) => {
       const { id } = payload as { id: string };

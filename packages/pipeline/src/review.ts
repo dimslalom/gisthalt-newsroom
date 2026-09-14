@@ -86,7 +86,8 @@ export async function reshuffle(ctx: Ctx, reviewId: string, _accountId?: string)
 export function editCaption(ctx: Ctx, compositionId: string, platform: Platform, caption: string) {
   const comp = ctx.store.getComposition(compositionId);
   if (!comp) throw new Error('composition not found');
-  const review = ctx.store.reviews.find((r) => r.compositionId === compositionId);
+  const review = ctx.store.reviews.find((r) => r.compositionId === compositionId && ['pending', 'held'].includes(r.state) && r.expiresAt > ctx.now())
+    ?? ctx.store.reviews.find((r) => r.compositionId === compositionId);
   if (!review) throw new Error('only review captions can be edited');
   actionable(ctx, review.id);
   validateCaption(caption, platform);

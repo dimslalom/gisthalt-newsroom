@@ -1,0 +1,76 @@
+[
+  {
+    "name": "certifying",
+    "width": 1440,
+    "focus": {
+      "text": "Design",
+      "inside": false
+    }
+  },
+  {
+    "name": "certify-error",
+    "width": 1440,
+    "focus": {
+      "text": "Design",
+      "inside": false
+    }
+  },
+  {
+    "name": "certify-success",
+    "width": 1440,
+    "focus": {
+      "text": "Design",
+      "inside": false
+    }
+  },
+  {
+    "name": "reference-full",
+    "width": 1440,
+    "focus": {
+      "text": "×",
+      "inside": true
+    }
+  },
+  {
+    "name": "worklist-error",
+    "width": 1440,
+    "text": "Design studio\n\nEvery layout slot this brand can compose, and whether it's been hand-designed and certified yet. Design one, or derive it from a sibling that's already done.\n\nLoading worklist…"
+  },
+  {
+    "name": "certifying",
+    "width": 390,
+    "focus": {
+      "text": "Design",
+      "inside": false
+    }
+  },
+  {
+    "name": "certify-error",
+    "width": 390,
+    "focus": {
+      "text": "Design",
+      "inside": false
+    }
+  },
+  {
+    "name": "certify-success",
+    "width": 390,
+    "focus": {
+      "text": "Design",
+      "inside": false
+    }
+  },
+  {
+    "name": "reference-full",
+    "width": 390,
+    "focus": {
+      "text": "×",
+      "inside": true
+    }
+  },
+  {
+    "name": "worklist-error",
+    "width": 390,
+    "text": "Design studio\n\nEvery layout slot this brand can compose, and whether it's been hand-designed and certified yet. Design one, or derive it from a sibling that's already done.\n\nLoading worklist…"
+  }
+]

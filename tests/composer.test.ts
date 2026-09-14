@@ -1,17 +1,37 @@
 import { describe, expect, it } from 'vitest';
 import { brandByKey } from '@newsroom/brands';
-import { accentSets, chooseArchetype, compose, isLayoutShippable, NoArchetypeError, loadPassing, TYPOGRAPHY_ONLY } from '@newsroom/design';
+import { accentSets, chooseArchetype, compose, isLayoutShippable, NoArchetypeError, loadPassing, BUILTIN_LAYOUT_FLAGS } from '@newsroom/design';
 import { loadAllFixtures, loadFixture } from '@newsroom/render';
 import { validateQuote } from '@newsroom/llm';
 
 const brand = brandByKey('f1');
 
+describe('session news headlines', () => {
+  const archetype = brand.archetypes.find((a) => a.key === 'session_result')!;
+  const claim = { ...loadFixture('classification-basic').claim, claimType: 'session_result',
+    entities: { driver: 'Oscar Piastri', team: 'McLaren', session: 'Qualifying', meeting: 'Spanish Grand Prix' },
+    values: { position: 7 }, headline: 'Piastri Soroti Kualifikasi GP Spanyol' };
+  it('uses the full editorial headline for prose news', () => {
+    const news = { ...claim, sourceTier: 'B' as const };
+    const model = archetype.model(news);
+    expect(model.headline).toBe(news.headline);
+    expect(brand.copy.session_result!(model, news).split('\n')[0]).toBe(news.headline);
+  });
+  it('keeps short driver headings on structured result cards', () => {
+    expect(archetype.model({ ...claim, sourceTier: 'A' }).headline).toBe('Oscar Piastri');
+  });
+  it('falls back safely when a prose headline is blank', () => {
+    expect(archetype.model({ ...claim, sourceTier: 'B', headline: '  ' }).headline).toBe('Oscar Piastri');
+  });
+});
+
 describe('the combinatorial system', () => {
-  it('offers 22 valid accent sets: none, each of six, and every pair', () => {
+  it('offers 16 valid accent sets: none, each of five, and every pair', () => {
     const sets = accentSets();
-    expect(sets).toHaveLength(22);
+    expect(sets).toHaveLength(16);
     expect(sets.every((s) => s.length <= 2)).toBe(true);
-    expect(new Set(sets.map((s) => [...s].sort().join('+'))).size).toBe(22);
+    expect(new Set(sets.map((s) => [...s].sort().join('+'))).size).toBe(16);
+    expect(sets.flat()).not.toContain('watermark');
   });
 
   it('declares 7 archetypes with exactly 4 layouts each — 28 designed layouts', () => {
@@ -20,8 +40,8 @@ describe('the combinatorial system', () => {
     expect(brand.archetypes.reduce((n, a) => n + a.layouts.length, 0)).toBe(28);
   });
 
-  it('reaches 3,080 compositions per brand from 28 designed files', () => {
-    expect(28 * 5 * 22).toBe(3080);
+  it('reaches 2,240 compositions per brand from 28 designed files', () => {
+    expect(28 * 5 * accentSets().length).toBe(2240);
   });
 });
 
@@ -63,7 +83,7 @@ describe('compose', () => {
 
   it('falls back to a typography-only layout when there is no image', () => {
     const spec = compose({ brand, claim: fixture.claim, history: [], hasImage: false });
-    expect(TYPOGRAPHY_ONLY).toContain(spec.layout);
+    expect(BUILTIN_LAYOUT_FLAGS[spec.layout]?.worksWithoutImage).toBe(true);
   });
 
   it('avoids the layout used by the previous post', () => {

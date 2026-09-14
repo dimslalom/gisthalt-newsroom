@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * The brand's *saved* palette and fonts — every layout's default, not one
+ * The brand's *saved* palette and fonts; every layout's default, not one
  * layer's override (that's the Inspector's Colour/Font fields). Backed by
  * brands/<key>/theme-override.json on the renderer; see
  * packages/design/src/theme-overrides.ts for why this stays config-as-code
@@ -41,7 +41,7 @@ const emToPercent = (em: string): number => {
   return Number.isFinite(n) ? Math.round(n * 1000) / 10 : 0;
 };
 
-/** "DIN Condensed Bold.ttf" -> family "DIN Condensed", weight 700 — a
+/** "DIN Condensed Bold.ttf" -> family "DIN Condensed", weight 700; a
  *  starting guess the designer can still edit before it's pinned. */
 const WEIGHT_WORDS: [RegExp, number][] = [
   [/\bthin\b/i, 100], [/\bextra-?light\b/i, 200], [/\blight\b/i, 300],
@@ -198,16 +198,16 @@ export function ThemePanel({ brand, skin, onChanged }: { brand: string; skin: st
   if (!data || !activeSkin) return <p style={{ fontSize: 12, color: 'var(--muted)' }}>Loading brand theme…</p>;
 
   return (
-    <div style={{ display: 'grid', gap: 14 }}>
+    <div className="theme-panel" style={{ display: 'grid', gap: 16 }}>
       <div>
-        <div className="panel-title" style={{ fontSize: 13, marginBottom: 6 }}>Palette — {activeSkin.key} skin</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
+        <div className="panel-title" style={{ fontSize: 14, marginBottom: 8 }}>Palette <span className="metadata">{activeSkin.key} skin</span></div>
+        <div className="theme-palette">
           {SKIN_ROLES.map((role) => {
             const value = activeSkin[role] ?? '';
             const overridden = overrideForSkin[role] !== undefined;
             return (
               <div key={role} style={{ display: 'grid', gap: 3 }}>
-                <label style={{ fontSize: 11, color: 'var(--muted)' }}>{ROLE_LABEL[role]}{overridden ? ' · custom' : ''}</label>
+                <label style={{ fontSize: 11, color: 'var(--muted)' }}><span className="metadata"><span>{ROLE_LABEL[role]}</span>{overridden && <span>custom</span>}</span></label>
                 <div className="row" style={{ gap: 4, flexWrap: 'nowrap' }}>
                   <input type="color" value={HEX_RE.test(value) ? value.slice(0, 7) : '#000000'}
                     onChange={(e) => void saveColour(role, e.target.value)}
@@ -227,7 +227,7 @@ export function ThemePanel({ brand, skin, onChanged }: { brand: string; skin: st
       </div>
 
       <div>
-        <div className="panel-title" style={{ fontSize: 13, marginBottom: 6 }}>Fonts</div>
+        <div className="panel-title" style={{ fontSize: 14, marginBottom: 8 }}>Fonts</div>
         <div style={{ display: 'grid', gap: 10 }}>
           {FONT_SLOTS.map((slot) => {
             const current = firstFamily(data.effective.fonts[slot]);
@@ -240,7 +240,7 @@ export function ThemePanel({ brand, skin, onChanged }: { brand: string; skin: st
                 <div className="row" style={{ gap: 6, flexWrap: 'nowrap', alignItems: 'flex-end' }}>
                   <div style={{ minWidth: 130 }}>
                     <div style={{ fontSize: 11, color: 'var(--muted)' }}>{FONT_LABEL[slot]}</div>
-                    <div style={{ fontSize: 13 }}>{current}{overridden ? (pinned ? ' · Google Font' : ' · uploaded') : ' · brand default'}</div>
+                    <div style={{ fontSize: 13 }}><span>{current}</span><span className="metadata">{overridden ? (pinned ? 'Google Font' : 'Uploaded') : 'Brand default'}</span></div>
                   </div>
                   <div className="row" style={{ gap: 4, flexWrap: 'nowrap', marginLeft: 'auto' }}>
                     <button type="button" aria-pressed={mode === 'google'}
@@ -296,21 +296,19 @@ export function ThemePanel({ brand, skin, onChanged }: { brand: string; skin: st
           })}
         </div>
         <p style={{ fontSize: 11, color: 'var(--muted)', margin: '6px 0 0' }}>
-          Google Fonts fetches the real font (Latin weights 400–700) once and pins it into this brand; Upload pins
-          your own file the same way — either way, nothing is ever re-fetched at render time, so a network blip
-          never changes a scheduled post&apos;s typography.
+          Fetch a Google Font or upload a font file. Fonts are stored with this brand.
         </p>
       </div>
 
       <div>
-        <div className="panel-title" style={{ fontSize: 13, marginBottom: 6 }}>Tracking (letter-spacing)</div>
+        <div className="panel-title" style={{ fontSize: 14, marginBottom: 8 }}>Tracking (letter-spacing)</div>
         <div className="row" style={{ gap: 14, flexWrap: 'wrap' }}>
           {LS_SLOTS.map((slot) => {
             const percent = emToPercent(data.effective.letterSpacing[slot]);
             const overridden = data.override.letterSpacing?.[slot] !== undefined;
             return (
               <div key={slot} style={{ display: 'grid', gap: 3 }}>
-                <label style={{ fontSize: 11, color: 'var(--muted)' }}>{LS_LABEL[slot]}{overridden ? ' · custom' : ''}</label>
+                <label style={{ fontSize: 11, color: 'var(--muted)' }}><span className="metadata"><span>{LS_LABEL[slot]}</span>{overridden && <span>custom</span>}</span></label>
                 <div className="row" style={{ gap: 4, flexWrap: 'nowrap' }}>
                   <input type="number" step={0.5} defaultValue={percent} key={percent}
                     onBlur={(e) => { const v = Number(e.target.value); if (v !== percent) void saveTracking(slot, v); }}

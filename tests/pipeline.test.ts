@@ -2,14 +2,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Store } from '@newsroom/db';
 import { GeminiRouter, validateQuote, writeCaption } from '@newsroom/llm';
 import { contentHash, domainMatches, evaluateGate, quoteSupports, type Claim } from '@newsroom/core';
-import { extractItem, gateClaim, approve, approveF1Launch, reject, holdForSecondSource, releaseHeldIfCorroborated, enqueuePost, reservePost, finishPost, seedAccounts, editCaption, assessReadiness, updateOps, type Ctx } from '@newsroom/pipeline';
+import { extractItem, gateClaim, approve, approveF1Launch, reject, holdForSecondSource, releaseHeldIfCorroborated, enqueuePost, reservePost, finishPost, seedAccounts, editCaption, assessReadiness, updateOps, attachResultsCarousel, type Ctx } from '@newsroom/pipeline';
 import { brandByKey } from '@newsroom/brands';
 import { isLayoutShippable } from '@newsroom/design';
+import { editablePostDoc, editPostCaption, renderPostDesign } from '@newsroom/pipeline';
+import { renderRemote } from '@newsroom/render';
+import { regenerateRecentF1Reviews } from '@newsroom/pipeline';
 vi.mock('@newsroom/render', async (load) => ({ ...await load<object>(), renderRemote: vi.fn(async () => ({path:'/data/renders/test.png',guards:{},url:'/renders/test.png'})) }));
 const now=new Date('2026-09-12T12:00:00Z');
 function context():Ctx {const store=new Store();return {store,router:new GeminiRouter(store,''),now:()=>new Date(now)};}
-function item(ctx:Ctx, domain='autosport.com', tier:'A'|'B'|'C'='B') {
-  return ctx.store.insertItem({sourceKey:domain,externalId:domain,contentHash:domain,preKey:'same',vertical:'f1',tier,sourceDomain:domain,rawUrl:`https://${domain}/story`,title:'Norris signs for 2027',body:'Norris signs for 2027.',payload:{claimType:'article'},fetchedAt:now,observedAt:now,imageUrl:null})!;
+function item(ctx:Ctx, domain='autosport.com', tier:'A'|'B'|'C'='B', imageUrl:string|null=null) {
+  return ctx.store.insertItem({sourceKey:domain,externalId:domain,contentHash:domain,preKey:'same',vertical:'f1',tier,sourceDomain:domain,rawUrl:`https://${domain}/story`,title:'Norris signs for 2027',body:'Norris signs for 2027.',payload:{claimType:'article'},fetchedAt:now,observedAt:now,imageUrl})!;
 }
 function claim(ctx:Ctx, domain='autosport.com') {
   const i=item(ctx,domain);
@@ -21,6 +24,81 @@ function composition(ctx:Ctx) {
   return ctx.store.insertComposition({claimId:c.id,accountId:'f1-x',archetype:'driver_line',layout:'framed',skin:'dark',accents:[],captionByPlatform:{x:'Norris signs for 2027',instagram:'Norris signs for 2027',threads:'Norris signs for 2027',tiktok:'Norris signs for 2027'},imagePaths:['test.png'],seed:1,renderedAt:now,createdAt:now});
 }
 afterEach(()=>vi.unstubAllEnvs());
+describe('regenerating recent F1 reviews', () => {
+  it('reopens recent expired reviews without publishing or losing history', async () => {
+    const ctx = context(); const comp = composition(ctx); gateClaim(ctx, ctx.store.getClaim(comp.claimId)!);
+    const old = ctx.store.reviews[0]!; old.compositionId = comp.id;
+    ctx.now = () => new Date(now.getTime() + 2 * 60 * 60000);
+    const result = await regenerateRecentF1Reviews(ctx);
+    expect(result.regenerated).toBe(1); expect(old.state).toBe('expired');
+    expect(ctx.store.reviews).toHaveLength(2); expect(ctx.store.pendingReviews(ctx.now())).toHaveLength(1);
+    expect(ctx.store.posts).toHaveLength(0);
+    editCaption(ctx, comp.id, 'x', 'Fresh manual caption');
+    expect(comp.captionByPlatform.x).toBe('Fresh manual caption');
+    expect((await regenerateRecentF1Reviews(ctx)).regenerated).toBe(0);
+  });
+  it('does not revive rejected reviews or source claims older than 24 hours', async () => {
+    const ctx = context(); const comp = composition(ctx); gateClaim(ctx, ctx.store.getClaim(comp.claimId)!);
+    ctx.store.reviews[0]!.state = 'rejected';
+    expect((await regenerateRecentF1Reviews(ctx)).regenerated).toBe(0);
+    ctx.store.reviews[0]!.state = 'expired'; ctx.now = () => new Date(now.getTime() + 25 * 60 * 60000);
+    expect((await regenerateRecentF1Reviews(ctx)).regenerated).toBe(0);
+  });
+  it('does not revive dropped claims or already queued content', async () => {
+    const ctx = context(); const comp = composition(ctx); gateClaim(ctx, ctx.store.getClaim(comp.claimId)!);
+    ctx.store.reviews[0]!.state = 'expired'; enqueuePost(ctx, comp, ['x']);
+    expect((await regenerateRecentF1Reviews(ctx)).regenerated).toBe(0);
+    ctx.store.posts[0]!.status = 'cancelled'; ctx.store.decisions[0]!.outcome = 'drop';
+    expect((await regenerateRecentF1Reviews(ctx)).regenerated).toBe(0);
+  });
+});
+describe('manual post editor', () => {
+  it('makes the ticker editable without duplication or reviving a deleted bar', () => {
+    const raw = { id: 'test', canvas: 'portrait-4x5', root: { kind: 'frame', id: 'root', name: 'Root', axis: 'vertical', children: [] } };
+    const first = editablePostDoc(raw, ['ticker', 'grain'], 8);
+    expect(first.accents).toEqual(['grain']);
+    expect(first.doc.root.children[0]!.name).toBe('Lower bar');
+    expect(editablePostDoc(first.doc, ['ticker'], 8).doc.root.children).toHaveLength(1);
+    first.doc.root.children = [];
+    expect(editablePostDoc(first.doc, ['ticker'], 8).doc.root.children).toHaveLength(0);
+    expect(raw.root.children).toHaveLength(0);
+  });
+  it('saves captions after review expiry without approving or queueing', () => {
+    const ctx = context(); const comp = composition(ctx);
+    gateClaim(ctx, ctx.store.getClaim(comp.claimId)!);
+    ctx.now = () => new Date(now.getTime() + 91 * 60000);
+    editPostCaption(ctx, comp.id, 'x', 'Updated manual caption');
+    expect(comp.captionByPlatform.x).toBe('Updated manual caption');
+    expect(ctx.store.posts).toHaveLength(0);
+    expect(ctx.store.reviews[0]!.state).toBe('pending');
+  });
+  it('rejects invalid documents without changing the saved artwork', async () => {
+    const ctx = context(); const comp = composition(ctx);
+    await expect(renderPostDesign(ctx, comp.id, {})).rejects.toThrow('document rejected');
+    expect(comp.imagePaths).toEqual(['test.png']);
+  });
+  it('re-renders only this composition and preserves its accents', async () => {
+    const ctx = context(); const comp = composition(ctx); comp.accents = ['grain'];
+    const { id: originalId, ...copy } = comp;
+    const other = ctx.store.insertComposition(copy);
+    const result = await renderPostDesign(ctx, comp.id, null);
+    expect(renderRemote).toHaveBeenLastCalledWith(expect.objectContaining({ accents: ['grain'], layout: comp.layout }));
+    expect(result.imagePaths).toEqual(['/data/renders/test.png']);
+    expect(other.imagePaths).toEqual(['test.png']);
+    expect(ctx.store.posts).toHaveLength(0);
+  });
+  it('blocks mutation while a publication is unresolved', async () => {
+    const ctx = context(); const comp = composition(ctx);
+    enqueuePost(ctx, comp, ['x']); ctx.store.posts[0]!.status = 'uncertain';
+    expect(() => editPostCaption(ctx, comp.id, 'x', 'Changed')).toThrow('unresolved publication');
+    await expect(renderPostDesign(ctx, comp.id, null)).rejects.toThrow('unresolved publication');
+  });
+  it('does not replace a carousel with one edited slide', async () => {
+    const ctx = context(); const comp = composition(ctx); comp.imagePaths.push('slide-two.png');
+    await expect(renderPostDesign(ctx, comp.id, null)).rejects.toThrow('carousel');
+    expect(comp.imagePaths).toHaveLength(2);
+  });
+});
 describe('account configuration safety',()=>{
   it('cancels queued posts and pauses platforms when reclassifying a brand',()=>{
     const ctx=context();const comp=composition(ctx);enqueuePost(ctx,comp,['x']);
@@ -58,6 +136,25 @@ describe('verification integration',()=>{
     const ctx=context();const a=item(ctx);await extractItem(ctx,a);const b=item(ctx,'motorsport.com');const call=vi.spyOn(ctx.router,'call');await extractItem(ctx,b);expect(call).not.toHaveBeenCalled();expect(ctx.store.evidence).toHaveLength(2);
   });
   it('rejects a missing fixture certification instead of selecting untested layouts',()=>{expect(isLayoutShippable('f1','unknown','framed',null)).toBe(false);});
+  it('keeps the source photo on an unextracted claim when the model returns a malformed response',async()=>{
+    const ctx=context();
+    const i=item(ctx,'autosport.com','B','https://cdn-1.motorsport.com/images/amp/6DGg7DDY/s6/photo.jpg');
+    vi.spyOn(ctx.router,'call').mockResolvedValue({json:{entities:'not-an-object'},offline:false,model:'test',cached:false} as never);
+    await extractItem(ctx,i);
+    const claim=ctx.store.claims[0]!;
+    expect(claim.tags).toContain('unextracted');
+    expect(claim.imageUrl).toBe('https://cdn-1.motorsport.com/images/amp/6DGg7DDY/s6/photo.jpg');
+  });
+  it('falls back to a Google image search when a genuinely new prose claim has no photo of its own',async()=>{
+    const ctx=context();
+    const i=item(ctx,'racefans.net','B',null);
+    vi.spyOn(ctx.router,'call').mockResolvedValue({json:{claimType:'article',entities:{},values:{},supportingQuote:null,headline:'Race report',tags:[]},offline:false,model:'test',cached:false} as never);
+    vi.stubEnv('GOOGLE_CSE_API_KEY','key');vi.stubEnv('GOOGLE_CSE_ID','cse');
+    vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify({items:[{link:'https://example.com/fallback.jpg'}]}),{status:200})));
+    await extractItem(ctx,i);
+    expect(ctx.store.claims[0]!.imageUrl).toBe('https://example.com/fallback.jpg');
+    vi.unstubAllGlobals();
+  });
 });
 describe('review transitions',()=>{
   it('expires held reviews and rejects stale approval even before a sweep',async()=>{
@@ -117,5 +214,50 @@ describe('controlled F1 launch',()=>{
   it('refuses the launch when a required F1 platform has not been activated',async()=>{
     const ctx=context();const comp=composition(ctx);gateClaim(ctx,ctx.store.getClaim(comp.claimId)!);const review=ctx.store.reviews[0]!;review.compositionId=comp.id;
     await expect(approveF1Launch(ctx,review.id)).rejects.toThrow('instagram');
+  });
+});
+describe('auto-attaching a results carousel',()=>{
+  function articleClaim(ctx:Ctx,headline:string) {
+    const i=ctx.store.insertItem({sourceKey:'racefans.net',externalId:headline,contentHash:headline,preKey:headline,vertical:'f1',tier:'B',sourceDomain:'racefans.net',rawUrl:'https://racefans.net/r1',title:headline,body:'',payload:{claimType:'article'},fetchedAt:now,observedAt:now,imageUrl:null})!;
+    return ctx.store.upsertClaim({itemId:i.id,vertical:'f1',claimType:'article',entities:{},values:{},supportingQuote:null,headline,imageUrl:null,tags:[],sourceTier:'B',sourceDomain:'racefans.net',extractedBy:'gemini',dedupeHash:`article-${headline}`,observedAt:now,createdAt:now}).claim;
+  }
+  function tierAClaim(ctx:Ctx,claimType:string,hash:string) {
+    const i=ctx.store.insertItem({sourceKey:'openf1',externalId:hash,contentHash:hash,preKey:hash,vertical:'f1',tier:'A',sourceDomain:'api.openf1.org',rawUrl:null,title:'',body:'',payload:{claimType},fetchedAt:now,observedAt:now,imageUrl:null})!;
+    return ctx.store.upsertClaim({itemId:i.id,vertical:'f1',claimType,entities:{},values:{rows:[]},supportingQuote:null,headline:claimType,imageUrl:null,tags:['structured'],sourceTier:'A',sourceDomain:'api.openf1.org',extractedBy:'structured',dedupeHash:hash,observedAt:now,createdAt:now}).claim;
+  }
+  function pendingReview(ctx:Ctx,claimId:string) {
+    return ctx.store.insertReview({claimId,compositionId:null,state:'pending',rule:'R4',reason:'test',createdAt:now,expiresAt:new Date(now.getTime()+90*60000),resolvedAt:null,note:null});
+  }
+  function activateF1X(ctx:Ctx) { seedAccounts(ctx); const a=ctx.store.getAccount('f1-x')!; a.active=true; a.warmupStage=1; a.dailyCap=3; }
+  afterEach(()=>vi.unstubAllGlobals());
+
+  it('attaches classification and standings slides and rejects the original single-image review',async()=>{
+    const ctx=context();activateF1X(ctx);
+    const article=articleClaim(ctx,'2026 Spanish Grand Prix race result and championship points');
+    tierAClaim(ctx,'classification','class-1');tierAClaim(ctx,'standings','standings-1');
+    const review=pendingReview(ctx,article.id);
+    vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify({images:[{path:'a.png'},{path:'b.png'},{path:'c.png'}],skin:'dark'}),{status:200})));
+    expect(await attachResultsCarousel(ctx,article,review.id)).toBe(true);
+    expect(ctx.store.getReview(review.id)!.state).toBe('rejected');
+    const carouselReview=ctx.store.reviews.find(r=>r.id!==review.id)!;
+    expect(carouselReview.state).toBe('pending');
+    expect(ctx.store.getComposition(carouselReview.compositionId!)!.imagePaths).toHaveLength(3);
+  });
+
+  it('leaves a non-results article alone',async()=>{
+    const ctx=context();activateF1X(ctx);
+    const article=articleClaim(ctx,'Norris signs contract extension with McLaren');
+    tierAClaim(ctx,'classification','class-2');
+    const review=pendingReview(ctx,article.id);
+    expect(await attachResultsCarousel(ctx,article,review.id)).toBe(false);
+    expect(ctx.store.getReview(review.id)!.state).toBe('pending');
+  });
+
+  it('leaves the review alone when no matching tier-A claim exists within the window',async()=>{
+    const ctx=context();activateF1X(ctx);
+    const article=articleClaim(ctx,'Full results and standings from the Spanish Grand Prix');
+    const review=pendingReview(ctx,article.id);
+    expect(await attachResultsCarousel(ctx,article,review.id)).toBe(false);
+    expect(ctx.store.getReview(review.id)!.state).toBe('pending');
   });
 });

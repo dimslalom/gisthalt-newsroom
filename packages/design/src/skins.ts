@@ -1,4 +1,4 @@
-import type { AccentKey, LayoutKey, Skin } from './types.ts';
+import type { AccentKey, Skin } from './types.ts';
 
 /** L4. Five moods. Entity colour is injected into the ones that ask for it. */
 export const SKINS: Skin[] = [
@@ -11,19 +11,10 @@ export const SKINS: Skin[] = [
 
 export const SKIN_BY_KEY = Object.fromEntries(SKINS.map((s) => [s.key, s]));
 
-/** L3. Eight layouts exist; each archetype declares the four it supports. */
-export const LAYOUTS: LayoutKey[] = [
-  'hero-left', 'hero-right', 'full-bleed', 'framed', 'split', 'stacked', 'big-number', 'portrait',
-];
-
-/** Layouts that need no image at all. image-missing falls back to one of these. */
-export const TYPOGRAPHY_ONLY: LayoutKey[] = ['framed', 'stacked', 'big-number'];
-
-/** Layouts with room for a long headline. fitText overflow escapes to one of these. */
-export const LONG_HEADLINE: LayoutKey[] = ['stacked', 'framed'];
-
-/** L5. Zero to two of six: 1 + 6 + 15 = 22 valid accent sets. */
-export const ACCENTS: AccentKey[] = ['diagonal', 'halftone', 'grain', 'ticker', 'watermark', 'cropmarks'];
+/** L5. Zero to two of five: 1 + 5 + 10 = 16 valid accent sets. The oversized
+ *  background-word watermark is no longer offered — not the brand's style —
+ *  though the renderer still draws it for any older composition that names it. */
+export const ACCENTS: AccentKey[] = ['diagonal', 'halftone', 'grain', 'ticker', 'cropmarks'];
 
 export function accentSets(): AccentKey[][] {
   const sets: AccentKey[][] = [[]];

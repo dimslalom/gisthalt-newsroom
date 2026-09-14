@@ -151,7 +151,7 @@ export function ElementInspector({
   return (
     <div style={{ display: 'grid', gap: 8 }}>
       <div className="row" style={{ justifyContent: 'space-between' }}>
-        <strong style={{ fontSize: 13 }}>{name}</strong>
+        <strong className="panel-title" style={{ fontSize: 14 }}>{name}</strong>
         <button onClick={onReset} disabled={!transform}>Reset</button>
       </div>
       <div className="row">

@@ -11,3 +11,4 @@ export * from './registry.ts';
 export * from './vlr.ts';
 export * from './tmdb.ts';
 export * from './promote.ts';
+export * from './image-search.ts';

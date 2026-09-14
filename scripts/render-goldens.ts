@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync, unlinkSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { brands, brandByKey } from '@newsroom/brands';
-import { SKINS, sharedFingerprint, layoutFingerprint, type CompositionSpec, type LayoutCertification, type PassingManifest } from '@newsroom/design';
+import { SKINS, sharedFingerprint, layoutFingerprint, resolvedLayouts, type CompositionSpec, type LayoutCertification, type PassingManifest } from '@newsroom/design';
 import { closePool, compareToGolden, loadAllFixtures, renderComposition } from '@newsroom/render';
 const args=process.argv.slice(2);const update=args.includes('--update');const only=args.find(a=>a.startsWith('--fixture='))?.split('=')[1];
 const onlyLayout=args.find(a=>a.startsWith('--layout='))?.split('=')[1]; // "<brand>/<archetype>/<layout>"
@@ -12,7 +12,7 @@ const out=resolve('.data/goldens'),golden=resolve('fixtures/goldens');mkdirSync(
 // font picked in the editor) is a real visual change, and must be certified
 // against the same effective brand the renderer actually serves.
 const effectiveBrands=brands.map(b=>brandByKey(b.key));
-let jobs=effectiveBrands.flatMap(brand=>brand.archetypes.flatMap(archetype=>archetype.layouts.flatMap(layout=>fixtures.map(fixture=>({brand,archetype,layout,fixture})))));
+let jobs=effectiveBrands.flatMap(brand=>brand.archetypes.flatMap(archetype=>resolvedLayouts(brand.key,archetype.key,archetype.layouts).flatMap(slot=>fixtures.map(fixture=>({brand,archetype,layout:slot.key,fixture})))));
 if(onlyLayout){
   const [brandKey,archetypeKey,layoutKey]=onlyLayout.split('/');
   jobs=jobs.filter(j=>j.brand.key===brandKey&&j.archetype.key===archetypeKey&&j.layout===layoutKey);

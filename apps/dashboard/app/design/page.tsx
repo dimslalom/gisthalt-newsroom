@@ -1,5 +1,5 @@
 import { getCatalog } from '../../lib/renderer.ts';
-import { DesignStudio } from './studio.tsx';
+import { Worklist } from './worklist.tsx';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,10 +22,11 @@ export default async function DesignPage({ searchParams }: { searchParams: Promi
       <div>
         <h1>Design studio</h1>
         <p className="lede">
-          Edit reusable layouts, arrange layers, and link text to claim data. Preview changes before saving.
+          Every layout slot this brand can compose, and whether it&apos;s been hand-designed and certified yet.
+          Design one, or derive it from a sibling that&apos;s already done.
         </p>
       </div>
-      <DesignStudio key={brand} catalog={catalog} />
+      <Worklist key={brand} initialCatalog={catalog} initialBrand={brand} />
     </>
   );
 }

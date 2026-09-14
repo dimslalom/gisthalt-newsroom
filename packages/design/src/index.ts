@@ -13,3 +13,5 @@ export * from './doc-render.ts';
 export * from './doc-store.ts';
 export * from './doc-seed.ts';
 export * from './theme-overrides.ts';
+export * from './layout-slots.ts';
+export * from './doc-derive.ts';

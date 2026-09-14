@@ -3,6 +3,8 @@ import type { RenderResult } from './render.ts';
 export interface RenderRequest {
   brand: string; claim?: Claim; fixture?: string; archetype?: string; layout?: string;
   skin?: string; accents?: string[]; imagePath?: string | null; fileName?: string; reshuffle?: number;
+  /** A per-post document; the renderer sanitizes it like any editor preview. */
+  doc?: unknown; canvas?: string;
 }
 /** Both production and previews use the same renderer process. */
 export async function renderRemote(body: RenderRequest): Promise<RenderResult & { url: string }> {

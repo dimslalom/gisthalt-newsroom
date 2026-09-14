@@ -3,7 +3,7 @@ import { dedupeHash, contentHash, preExtractionKey } from '@newsroom/core';
 import type { Claim, RawItem } from '@newsroom/core';
 import type { ClaimRow, ItemRow } from '@newsroom/db';
 import { extractClaim, validateQuote } from '@newsroom/llm';
-import { structuredClaim, topResultClaim, promotePrimary } from '@newsroom/sources';
+import { structuredClaim, topResultClaim, promotePrimary, fetchFallbackImage } from '@newsroom/sources';
 import type { Ctx } from '../context.ts';
 
 export const toRawItem = (row: ItemRow): RawItem => ({
@@ -65,7 +65,7 @@ export async function extractItem(ctx: Ctx, row: ItemRow): Promise<ExtractSummar
         // A quota or malformed response degrades into an explicitly unextracted
         // review item. It never removes the source from the newsroom.
         violation = (error as Error).message;
-        produced.push({ vertical: row.vertical, claimType: 'article', entities: { title: row.title }, values: {}, supportingQuote: null, sourceTier: row.tier === 'A' ? 'B' : row.tier, sourceDomain: row.sourceDomain, observedAt: row.observedAt, headline: row.title, tags: ['unextracted'] });
+        produced.push({ vertical: row.vertical, claimType: 'article', entities: { title: row.title }, values: {}, supportingQuote: null, sourceTier: row.tier === 'A' ? 'B' : row.tier, sourceDomain: row.sourceDomain, observedAt: row.observedAt, headline: row.title, imageUrl: item.imageUrl ?? null, tags: ['unextracted'] });
       }
     }
   }
@@ -73,6 +73,12 @@ export async function extractItem(ctx: Ctx, row: ItemRow): Promise<ExtractSummar
   let created = 0;
   for (const claim of produced) {
     const hash = dedupeHash(claim);
+    // Only worth spending a search-quota call on a claim that will actually
+    // become a new row — upsertClaim keeps the existing row untouched on a
+    // dedupe hit, so a duplicate story would just throw the result away.
+    if (!claim.imageUrl && claim.sourceTier === 'B' && !ctx.store.claims.some((c) => c.dedupeHash === hash)) {
+      claim.imageUrl = await fetchFallbackImage(claim.headline ?? item.title);
+    }
     const { claim: row2, created: isNew } = ctx.store.upsertClaim({
       itemId: row.id,
       vertical: claim.vertical,

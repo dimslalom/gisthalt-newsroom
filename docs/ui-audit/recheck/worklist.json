@@ -1,0 +1,228 @@
+{
+  "rows": [
+    {
+      "archetype": "session_result",
+      "layout": "hero-left",
+      "label": "hero-left",
+      "custom": false,
+      "hasDocument": true,
+      "status": "certified"
+    },
+    {
+      "archetype": "session_result",
+      "layout": "full-bleed",
+      "label": "full-bleed",
+      "custom": false,
+      "hasDocument": true,
+      "status": "certified"
+    },
+    {
+      "archetype": "session_result",
+      "layout": "big-number",
+      "label": "big-number",
+      "custom": false,
+      "hasDocument": true,
+      "status": "certified"
+    },
+    {
+      "archetype": "session_result",
+      "layout": "portrait",
+      "label": "portrait",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "classification",
+      "layout": "stacked",
+      "label": "stacked",
+      "custom": false,
+      "hasDocument": true,
+      "status": "certified"
+    },
+    {
+      "archetype": "classification",
+      "layout": "framed",
+      "label": "framed",
+      "custom": false,
+      "hasDocument": true,
+      "status": "certified"
+    },
+    {
+      "archetype": "classification",
+      "layout": "split",
+      "label": "split",
+      "custom": false,
+      "hasDocument": true,
+      "status": "certified"
+    },
+    {
+      "archetype": "classification",
+      "layout": "hero-right",
+      "label": "hero-right",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "standings",
+      "layout": "stacked",
+      "label": "stacked",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "standings",
+      "layout": "framed",
+      "label": "framed",
+      "custom": false,
+      "hasDocument": true,
+      "status": "certified"
+    },
+    {
+      "archetype": "standings",
+      "layout": "big-number",
+      "label": "big-number",
+      "custom": false,
+      "hasDocument": true,
+      "status": "certified"
+    },
+    {
+      "archetype": "standings",
+      "layout": "split",
+      "label": "split",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "penalty",
+      "layout": "framed",
+      "label": "framed",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "penalty",
+      "layout": "big-number",
+      "label": "big-number",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "penalty",
+      "layout": "hero-left",
+      "label": "hero-left",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "penalty",
+      "layout": "stacked",
+      "label": "stacked",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "driver_line",
+      "layout": "portrait",
+      "label": "portrait",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "driver_line",
+      "layout": "hero-left",
+      "label": "hero-left",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "driver_line",
+      "layout": "hero-right",
+      "label": "hero-right",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "driver_line",
+      "layout": "framed",
+      "label": "framed",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "schedule",
+      "layout": "stacked",
+      "label": "stacked",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "schedule",
+      "layout": "framed",
+      "label": "framed",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "schedule",
+      "layout": "split",
+      "label": "split",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "schedule",
+      "layout": "big-number",
+      "label": "big-number",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "quote",
+      "layout": "portrait",
+      "label": "portrait",
+      "custom": false,
+      "hasDocument": true,
+      "status": "certified"
+    },
+    {
+      "archetype": "quote",
+      "layout": "framed",
+      "label": "framed",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "quote",
+      "layout": "hero-left",
+      "label": "hero-left",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    },
+    {
+      "archetype": "quote",
+      "layout": "full-bleed",
+      "label": "full-bleed",
+      "custom": false,
+      "hasDocument": false,
+      "status": "no-document"
+    }
+  ]
+}

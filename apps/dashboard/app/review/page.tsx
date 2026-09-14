@@ -4,10 +4,11 @@ import { ReviewList } from './review-list.tsx';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ReviewPage() {
+export default async function ReviewPage({ searchParams }: { searchParams: Promise<{ vertical?: string; status?: string }> }) {
+  const query = await searchParams;
   const s = await store();
   const now = new Date();
-  const items = s.pendingReviews(now).map((r) => {
+  const items = [...s.reviews].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).map((r) => {
     const claim = s.getClaim(r.claimId);
     const item = claim ? s.getItem(claim.itemId) : undefined;
     const comp = r.compositionId ? s.getComposition(r.compositionId) : undefined;
@@ -16,7 +17,9 @@ export default async function ReviewPage() {
       id: r.id,
       rule: r.rule,
       reason: r.reason,
-      state: r.state,
+      state: ['pending', 'held'].includes(r.state) && r.expiresAt <= now ? 'expired' : r.state,
+      observedAt: claim?.observedAt.toISOString() ?? null,
+      note: r.note,
       expiresInMinutes: Math.max(0, Math.round((new Date(r.expiresAt).getTime() - now.getTime()) / 60000)),
       headline: claim?.headline ?? item?.title ?? '(no headline)',
       vertical: claim?.vertical ?? null,
@@ -34,5 +37,5 @@ export default async function ReviewPage() {
       compositionId: comp?.id ?? null,
     };
   });
-  return <ReviewList items={items} />;
+  return <ReviewList items={items} initialVertical={query.vertical} initialStatus={query.status} />;
 }

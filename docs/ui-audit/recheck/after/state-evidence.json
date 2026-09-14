@@ -1,0 +1,76 @@
+[
+  {
+    "name": "certifying",
+    "width": 1440,
+    "focus": {
+      "text": "Certifying every design…Don't close this tab or navigate away until it finishes.10 / 100 renders checked@keyframes certify-indeterminate { 0% { transform: translateX(0px) scaleX(0.3); } 50% { transform: translateX(224px) scaleX(0.3); } 100% { transform: translateX(0px) scaleX(0.3); } }",
+      "inside": true
+    }
+  },
+  {
+    "name": "certify-error",
+    "width": 1440,
+    "focus": {
+      "text": "Close",
+      "inside": true
+    }
+  },
+  {
+    "name": "certify-success",
+    "width": 1440,
+    "focus": {
+      "text": "Design",
+      "inside": false
+    }
+  },
+  {
+    "name": "reference-full",
+    "width": 1440,
+    "focus": {
+      "text": "Close",
+      "inside": true
+    }
+  },
+  {
+    "name": "worklist-error",
+    "width": 1440,
+    "text": "Design studio\n\nEvery layout slot this brand can compose, and whether it's been hand-designed and certified yet. Design one, or derive it from a sibling that's already done.\n\nSektor Tiga\nTitik Match\nLayar Kini\nCertify all designs\nRenderer unavailable (audit test)\nRetry"
+  },
+  {
+    "name": "certifying",
+    "width": 390,
+    "focus": {
+      "text": "Certifying every design…Don't close this tab or navigate away until it finishes.10 / 100 renders checked@keyframes certify-indeterminate { 0% { transform: translateX(0px) scaleX(0.3); } 50% { transform: translateX(224px) scaleX(0.3); } 100% { transform: translateX(0px) scaleX(0.3); } }",
+      "inside": true
+    }
+  },
+  {
+    "name": "certify-error",
+    "width": 390,
+    "focus": {
+      "text": "Close",
+      "inside": true
+    }
+  },
+  {
+    "name": "certify-success",
+    "width": 390,
+    "focus": {
+      "text": "Design",
+      "inside": false
+    }
+  },
+  {
+    "name": "reference-full",
+    "width": 390,
+    "focus": {
+      "text": "Close",
+      "inside": true
+    }
+  },
+  {
+    "name": "worklist-error",
+    "width": 390,
+    "text": "Design studio\n\nEvery layout slot this brand can compose, and whether it's been hand-designed and certified yet. Design one, or derive it from a sibling that's already done.\n\nSektor Tiga\nTitik Match\nLayar Kini\nCertify all designs\nRenderer unavailable (audit test)\nRetry"
+  }
+]

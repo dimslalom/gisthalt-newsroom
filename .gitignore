@@ -2,6 +2,7 @@ node_modules/
 .data/
 out/
 renders/
+fixtures/goldens/
 .next/
 *.tsbuildinfo
 .env

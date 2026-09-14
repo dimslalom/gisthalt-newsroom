@@ -16,7 +16,7 @@
 
 import { DEFAULT_CANVAS, type FontFamily, type FontSpec, type FrameNode, type LayoutDoc, type LayoutNode, type TextNode } from './doc.ts';
 import type { Colour, Paint } from './paint.ts';
-import type { LayoutKey } from './types.ts';
+import type { BuiltinLayoutKey, LayoutKey } from './types.ts';
 
 /* --------------------------------------------------------------- builders */
 
@@ -50,11 +50,11 @@ const header = (p: string, reverse = false): FrameNode => frame(`${p}-hdr`, {
        { kind: 'logo', id: `${p}-logo`, name: 'Logo', variant: 'auto' }],
 });
 
-/** Footnote plus the accent rule. */
+/** Just the footnote. No decorative rule — that reads as a style the brand
+ *  isn't going for; add one back per-layout in the editor if a design wants it. */
 const footer = (p: string, reverse = false): FrameNode => {
   const kids: LayoutNode[] = [
     text(`${p}-footnote`, { name: 'Footnote', source: bind('footnote'), step: 'fine', font: fam('mono'), colour: c('muted'), transform: 'uppercase' }),
-    { kind: 'shape', id: `${p}-rule`, name: 'Accent rule', shape: 'rect', colour: c('accent'), width: { mode: 'fixed', px: 120 }, height: { mode: 'fixed', px: 3 } },
   ];
   const placed = reverse ? kids.reverse() : kids;
   return frame(`${p}-foot`, {
@@ -135,7 +135,7 @@ function doc(id: string, name: string, children: LayoutNode[], pad = PAD): Layou
 
 export function seedDoc(layout: LayoutKey): LayoutDoc {
   const p = layout;
-  switch (layout) {
+  switch (layout as BuiltinLayoutKey) {
     case 'hero-left':
       return doc(p, 'Hero left', [fullPhoto(p), header(p), bodyStack(p, { justify: 'end', align: 'start' }), footer(p)]);
 
@@ -189,9 +189,12 @@ export function seedDoc(layout: LayoutKey): LayoutDoc {
         bodyStack(p, { justify: 'end', align: 'start', paddingRight: 42, headlineMax: 68 }),
         footer(p),
       ]);
+
+    // A custom slot (see layout-slots.ts) has no CSS-template fallback and no
+    // bespoke recipe of its own — start from the most general-purpose
+    // built-in (a full-bleed photo behind a left-aligned text stack) rather
+    // than refusing to seed one at all. The designer reshapes it from there.
+    default:
+      return doc(p, layout, [fullPhoto(p), header(p), bodyStack(p, { justify: 'end', align: 'start' }), footer(p)]);
   }
 }
-
-export const SEEDABLE_LAYOUTS: LayoutKey[] = [
-  'hero-left', 'hero-right', 'full-bleed', 'framed', 'split', 'stacked', 'big-number', 'portrait',
-];

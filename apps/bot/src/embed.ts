@@ -4,12 +4,16 @@ export interface ReviewCard {
   title: string;
   description: string;
   fields: { name: string; value: string; inline?: boolean }[];
-  imagePath: string | null;
+  /** Every rendered image for this composition (a carousel has more than one),
+   * in post order. The first is the embed's own preview image. */
+  imagePaths: string[];
   footer: string;
   colour: number;
 }
 
 const DASH = '–';
+
+const PLATFORM_LABELS: Record<string, string> = { x: 'X', instagram: 'Instagram', threads: 'Threads', tiktok: 'TikTok' };
 
 /**
  * One embed with the rendered image attached, so design and copy are judged in
@@ -28,6 +32,19 @@ export function buildReviewCard(store: Store, review: ReviewRow, now: Date): Rev
 
   const minutesLeft = Math.max(0, Math.round((review.expiresAt.getTime() - now.getTime()) / 60_000));
 
+  // X's caption stays the description (it's the platform the whole card is
+  // framed around); every other platform gets its own field so a reviewer can
+  // catch a platform-specific miss without opening the design editor.
+  const otherCaptions = comp
+    ? Object.entries(comp.captionByPlatform)
+        .filter(([platform]) => platform !== 'x')
+        .map(([platform, text]) => ({
+          name: PLATFORM_LABELS[platform] ?? platform,
+          value: (text || DASH).slice(0, 1024),
+          inline: false,
+        }))
+    : [];
+
   return {
     title: claim?.headline ?? item?.title ?? '(no headline)',
     description: comp?.captionByPlatform.x ?? '(not yet composed)',
@@ -38,8 +55,9 @@ export function buildReviewCard(store: Store, review: ReviewRow, now: Date): Rev
       { name: 'Claim', value: `\`${claim?.claimType ?? DASH}\``, inline: true },
       { name: 'Supporting quote', value: quoteField, inline: false },
       ...(item?.rawUrl ? [{ name: 'Link', value: item.rawUrl, inline: false }] : []),
+      ...otherCaptions,
     ],
-    imagePath: comp?.imagePaths[0] ?? null,
+    imagePaths: comp?.imagePaths ?? [],
     footer: `expires in ${minutesLeft}m · ${review.id.slice(0, 8)}`,
   };
 }

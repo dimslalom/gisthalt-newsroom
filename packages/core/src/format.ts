@@ -1,8 +1,26 @@
+import type { Claim } from './contracts.ts';
+
 /**
  * Formatting lives in exactly one place. Every "missing" value renders as a
  * dash, never as blank space and never as the string "undefined".
  */
 export const DASH = '–';
+
+/**
+ * The one gate every archetype must pass a claim's headline through before
+ * drawing it on a graphic. `unextracted` means extraction never ran (no
+ * model, or it failed): `claim.headline` is then just the raw scraped
+ * source title, English by default, never translated. Trusting it there is
+ * exactly how English text used to leak onto rendered posts. A translated
+ * headline (real extraction, or a deterministic label built from entities)
+ * is fine to show; an unverified one is not, no matter how confident it
+ * looks.
+ */
+export function safeHeadline(claim: Claim, fallback: string): string {
+  const h = claim.headline?.trim();
+  if (!h) return fallback;
+  return claim.tags?.includes('unextracted') ? fallback : h;
+}
 
 /**
  * Lap times arrive as float seconds (93.662), not formatted strings, and race

@@ -78,7 +78,6 @@ const BASE_CSS = String.raw`
 .logo-svg{width:calc(var(--fs-lab) * 1.9);height:calc(var(--fs-lab) * 1.9);line-height:0}
 .logo-svg svg{width:100%;height:100%;display:block}
 .foot{display:flex;justify-content:space-between;align-items:end;gap:var(--u);color:var(--muted);font-size:var(--fs-fine)}
-.rule{height:var(--stroke);background:var(--accent);width:120px}
 
 .body{display:grid;align-content:end;gap:calc(var(--u)*2.5);min-height:0}
 .headline{font-size:var(--fs-h1)}
@@ -126,7 +125,6 @@ td.trailing{text-align:right;font-family:var(--font-mono);color:var(--muted);fon
   linear-gradient(to top,rgba(0,0,0,calc(var(--scrim) + .35)) 10%,rgba(0,0,0,0) 70%)}
 
 .layout-framed .layer{padding:calc(var(--pad)*1.35)}
-.layout-framed::before{content:"";position:absolute;inset:32px;border:var(--stroke) solid var(--accent);z-index:2;pointer-events:none}
 .layout-framed .body{align-content:center;text-align:center;justify-items:center}
 .layout-framed .headline{font-size:var(--fs-h1);max-width:780px}
 .layout-framed .sub{text-align:center}
@@ -308,7 +306,6 @@ ${BASE_CSS}
     </main>
     <footer class="foot">
       <span class="lab"${el('footnote')}>${esc(model.footnote)}</span>
-      <span class="rule"></span>
     </footer>
   </div>
 </div>

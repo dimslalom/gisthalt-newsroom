@@ -245,6 +245,9 @@ importers:
       '@newsroom/db':
         specifier: workspace:*
         version: link:../db
+      '@newsroom/render':
+        specifier: workspace:*
+        version: link:../render
       playwright:
         specifier: ^1.49.1
         version: 1.63.0

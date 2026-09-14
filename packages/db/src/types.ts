@@ -24,6 +24,8 @@ export interface CompositionRow {
   id: string; claimId: string; accountId: string; archetype: string; layout: string;
   skin: string; accents: string[]; captionByPlatform: Record<string, string>;
   imagePaths: string[]; seed: number; renderedAt: Date | null; createdAt: Date;
+  /** A per-post design edited in the studio; absent or null = the layout's document. */
+  doc?: unknown;
 }
 
 export type PostStatus = 'ready' | 'publishing' | 'published' | 'failed' | 'held' | 'simulated' | 'uncertain' | 'cancelled' | 'retraction_requested' | 'retracted';

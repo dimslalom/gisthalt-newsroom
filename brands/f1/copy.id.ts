@@ -12,7 +12,9 @@ import { meetingId, sessionId } from './locale.id.ts';
  */
 export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
   session_result: (m, c) =>
-    [`${m.headline} ${m.bigNumber ?? ''} di ${sessionId(c.entities.session) || 'sesi'} ${meetingId(c.entities.meeting)}`.trim(),
+    [c.sourceTier !== 'A' && c.headline?.trim()
+      ? m.headline
+      : `${m.headline} ${m.bigNumber ?? ''} di ${sessionId(c.entities.session) || 'sesi'} ${meetingId(c.entities.meeting)}`.trim(),
      m.subhead ? m.subhead : '',
      '⏱️ Waktu lengkap dan selisih tiap pembalap ada di grafik ini.',
      tags(c)].filter(Boolean).join('\n\n'),
