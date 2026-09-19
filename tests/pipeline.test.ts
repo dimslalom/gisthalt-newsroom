@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Store } from '@newsroom/db';
 import { GeminiRouter, validateQuote, writeCaption } from '@newsroom/llm';
-import { contentHash, domainMatches, evaluateGate, quoteSupports, type Claim } from '@newsroom/core';
+import { contentHash, dedupeHash, domainMatches, evaluateGate, quoteSupports, type Claim } from '@newsroom/core';
 import { extractItem, gateClaim, approve, approveF1Launch, reject, holdForSecondSource, releaseHeldIfCorroborated, enqueuePost, reservePost, finishPost, seedAccounts, editCaption, assessReadiness, updateOps, attachResultsCarousel, type Ctx } from '@newsroom/pipeline';
 import { brandByKey } from '@newsroom/brands';
-import { isLayoutShippable } from '@newsroom/design';
+import { chooseArchetype, isLayoutShippable } from '@newsroom/design';
 import { editablePostDoc, editPostCaption, renderPostDesign } from '@newsroom/pipeline';
 import { renderRemote } from '@newsroom/render';
 import { regenerateRecentF1Reviews } from '@newsroom/pipeline';
@@ -145,6 +145,19 @@ describe('verification integration',()=>{
     expect(claim.tags).toContain('unextracted');
     expect(claim.imageUrl).toBe('https://cdn-1.motorsport.com/images/amp/6DGg7DDY/s6/photo.jpg');
   });
+  it('stores a claim type its brand has no archetype for as an article, and only offers the brand\'s types',async()=>{
+    const ctx=context();
+    const i=item(ctx);
+    const call=vi.spyOn(ctx.router,'call').mockResolvedValue({json:{claimType:'release',entities:{driver:'Norris'},values:{},supportingQuote:null,headline:'Norris teken kontrak baru bersama McLaren',tags:[]},offline:false,model:'test',cached:false} as never);
+    await extractItem(ctx,i);
+    const c=ctx.store.claims[0]!;
+    expect(c.claimType).toBe('article');
+    expect(c.dedupeHash).toBe(dedupeHash({vertical:'f1',claimType:'article',entities:c.entities,values:c.values}));
+    expect(()=>chooseArchetype(brandByKey('f1'),c.claimType)).not.toThrow();
+    const prompt=(call.mock.calls[0]![0] as {prompt:string}).prompt;
+    expect(prompt).toMatch(/claimType is one of: [^\n]*driver_line/);
+    expect(prompt).not.toMatch(/claimType is one of: [^\n]*\brelease\b/);
+  });
   it('falls back to a Google image search when a genuinely new prose claim has no photo of its own',async()=>{
     const ctx=context();
     const i=item(ctx,'racefans.net','B',null);
@@ -219,7 +232,7 @@ describe('controlled F1 launch',()=>{
 describe('auto-attaching a results carousel',()=>{
   function articleClaim(ctx:Ctx,headline:string) {
     const i=ctx.store.insertItem({sourceKey:'racefans.net',externalId:headline,contentHash:headline,preKey:headline,vertical:'f1',tier:'B',sourceDomain:'racefans.net',rawUrl:'https://racefans.net/r1',title:headline,body:'',payload:{claimType:'article'},fetchedAt:now,observedAt:now,imageUrl:null})!;
-    return ctx.store.upsertClaim({itemId:i.id,vertical:'f1',claimType:'article',entities:{},values:{},supportingQuote:null,headline,imageUrl:null,tags:[],sourceTier:'B',sourceDomain:'racefans.net',extractedBy:'gemini',dedupeHash:`article-${headline}`,observedAt:now,createdAt:now}).claim;
+    return ctx.store.upsertClaim({itemId:i.id,vertical:'f1',claimType:'article',entities:{},values:{},supportingQuote:null,headline,imageUrl:null,tags:['headline:id'],sourceTier:'B',sourceDomain:'racefans.net',extractedBy:'gemini',dedupeHash:`article-${headline}`,observedAt:now,createdAt:now}).claim;
   }
   function tierAClaim(ctx:Ctx,claimType:string,hash:string) {
     const i=ctx.store.insertItem({sourceKey:'openf1',externalId:hash,contentHash:hash,preKey:hash,vertical:'f1',tier:'A',sourceDomain:'api.openf1.org',rawUrl:null,title:'',body:'',payload:{claimType},fetchedAt:now,observedAt:now,imageUrl:null})!;

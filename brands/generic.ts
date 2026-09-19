@@ -30,7 +30,9 @@ export function makeBrand(config: VerticalConfig): Brand {
     },
   }));
   const copy = Object.fromEntries(archetypes.map((a) => [a.key, (m: ArtModel) => [m.headline, m.bigNumber, m.subhead, ...(m.rows ?? []).slice(0,3).map((r) => `${r.rank}. ${r.primary}: ${r.value}`), `#${config.name.replace(/\s/g,'')}`].filter(Boolean).join('\n\n')]));
-  return { key: config.key, vertical: config.key, name: config.name, tokens: { ...tokens, logo: { text: config.name.toUpperCase(), mark: config.mark } }, skins: SKINS,
+  // Every post is a full photo background, so a skin that drops the photo
+  // (imagery: 'none') would render a blank card.
+  return { key: config.key, vertical: config.key, name: config.name, tokens: { ...tokens, logo: { text: config.name.toUpperCase(), mark: config.mark } }, skins: SKINS.filter((s) => s.imagery !== 'none'),
     archetypes, entities: {}, blocklist, hedgeTerms, tierBAllowlist: config.allowlist,
     requiredFields: Object.fromEntries(config.archetypes.flatMap((a) => a.types.filter((t) => t !== 'article').map((type) => [type, a.required]))), copy };
 }

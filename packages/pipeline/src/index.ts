@@ -7,6 +7,7 @@ import { gateClaim } from './stages/gate.ts';
 import { composeClaim, PLATFORMS } from './stages/compose.ts';
 import { enqueuePost } from './stages/publish.ts';
 import { attachResultsCarousel } from './results-carousel.ts';
+import { ensureHookHeadlines } from './headlines.ts';
 
 export * from './context.ts';
 export * from './stages/poll.ts';
@@ -17,6 +18,7 @@ export * from './stages/publish.ts';
 export * from './review.ts';
 export * from './post-design.ts';
 export * from './regenerate-reviews.ts';
+export * from './headlines.ts';
 
 export interface TickResult {
   polled: { source: string; inserted: number; error?: string }[];
@@ -66,6 +68,10 @@ export async function tick(ctx: Ctx = getCtx(), opts: { accountId?: string; plat
   const autos = ctx.store.claims.filter((c) => autoClaimIds.has(c.id) && !composedClaimIds.has(c.id));
 
   if (opts.render !== false) {
+    // compose() refuses prose claims without an Indonesian hook; write the
+    // missing ones first so they aren't stuck waiting for a later tick.
+    await ensureHookHeadlines(ctx, { limit: 10 }).catch((e) =>
+      ctx.store.log({ stage: 'extract', level: 'error', msg: 'hook headlines failed', dedupeHash: null, latencyMs: null, meta: { error: (e as Error).message } }));
     for (const claim of autos) {
       try {
         const comp = await composeClaim(ctx, claim, accountId ?? accountForClaim(ctx, claim.id));

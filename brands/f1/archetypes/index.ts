@@ -53,6 +53,31 @@ const meetingLine = (claim: Claim): string => {
 const footer = (claim: Claim): string =>
   `${claim.sourceDomain.toUpperCase()} · ${dateId(claim.observedAt)}`;
 
+/**
+ * The hook for a confirmed result, built only from structured values: who,
+ * what they achieved, and where. A bare driver name is a label, not a hook.
+ */
+function resultHook(claim: Claim, driver: string, position: number | null): string {
+  const session = sess(claim);
+  const meeting = meet(claim);
+  const inMeeting = meeting !== DASH ? ` ${meeting}` : '';
+  if (driver === DASH) return session !== DASH ? `Hasil ${session}${inMeeting}` : `Hasil Sesi${inMeeting}`;
+  if (!position) return session !== DASH ? `${driver} di ${session}${inMeeting}` : driver;
+  if (position === 1) {
+    if (session === 'Balapan') return meeting !== DASH ? `${driver} Menangi ${meeting}` : `${driver} Menangi Balapan`;
+    if (session === 'Sprint') return `${driver} Menangi Sprint${inMeeting}`;
+    if (session === 'Kualifikasi') return `${driver} Rebut Pole${inMeeting}`;
+    if (session !== DASH) return `${driver} Tercepat di ${session}${inMeeting}`;
+    return `${driver} Tercepat${inMeeting}`;
+  }
+  return session !== DASH ? `${driver} Finis P${position} di ${session}` : `${driver} Finis P${position}${inMeeting}`;
+}
+
+/** Prose claims carry a verified Indonesian hook from the model; confirmed
+ *  structured claims build theirs from data. Never the other way round. */
+const hookOr = (claim: Claim, built: string): string =>
+  claim.sourceTier !== 'A' ? safeHeadline(claim, built) : built;
+
 /** L2. Seven archetypes, four layouts each, selected by claimType not by taste. */
 export const archetypes: Archetype[] = [
   {
@@ -68,13 +93,7 @@ export const archetypes: Archetype[] = [
         // A mega-sized dash is a bug, not a fallback: drop the block instead.
         bigNumber: p ? `P${p}` : undefined,
         bigLabel: p ? sess(claim) : undefined,
-        // Prose news carries an editorial headline; structured result cards
-        // retain the short driver label alongside their position number.
-        // safeHeadline refuses an 'unextracted' claim.headline — that's the
-        // raw scraped English title, never a translated one.
-        headline: claim.sourceTier !== 'A'
-          ? safeHeadline(claim, driver === DASH ? 'Hasil sesi' : driver)
-          : (driver === DASH ? 'Hasil sesi' : driver),
+        headline: hookOr(claim, resultHook(claim, driver, p)),
         subhead: [team !== DASH ? team : null, lapTime(n(claim.values.duration)) !== DASH ? lapTime(n(claim.values.duration)) : null]
           .filter(Boolean).join('  ·  ') || undefined,
         footnote: footer(claim),
@@ -94,7 +113,7 @@ export const archetypes: Archetype[] = [
         eyebrow: meetingLine(claim),
         // claim.headline is the raw OpenF1 title ("Practice 2 - Madrid 2026")
         // for every structured claim here; it is never the display headline.
-        headline: `Klasemen ${sess(claim)}`,
+        headline: resultHook(claim, leader ? s(leader.driver ?? leader.abbr) : DASH, leader ? 1 : null),
         rows: toTableRows(rows, rows.length > 12 ? 14 : 10, 'time'),
         subhead: leader ? `Tercepat: ${s(leader.driver)} ${lapTime(leader.duration ?? null)}` : undefined,
         footnote: footer(claim),
@@ -112,7 +131,9 @@ export const archetypes: Archetype[] = [
       const leader = rows[0];
       return {
         eyebrow: `KLASEMEN ${s(claim.values.season)} · RONDE ${num(n(claim.values.round))}`,
-        headline: safeHeadline(claim, 'Klasemen Pembalap'),
+        headline: hookOr(claim, leader && leader.points != null
+          ? `${s(leader.driver ?? leader.team)} Memimpin Klasemen dengan ${leader.points} Poin`
+          : leader ? `${s(leader.driver ?? leader.team)} di Puncak Klasemen` : `Update Klasemen Musim ${s(claim.values.season)}`),
         rows: toTableRows(rows, 10, 'points'),
         bigNumber: leader?.points != null ? String(leader.points) : undefined,
         bigLabel: leader ? `POIN · ${s(leader.driver)}` : undefined,
@@ -132,7 +153,9 @@ export const archetypes: Archetype[] = [
         eyebrow: `KEPUTUSAN STEWARD · ${meetingLine(claim)}`,
         bigNumber: penalty !== DASH ? penalty : undefined,
         bigLabel: penalty !== DASH ? 'PENALTI' : undefined,
-        headline: s(claim.entities.driver),
+        headline: hookOr(claim, penalty !== DASH
+          ? `${s(claim.entities.driver)} Kena Penalti ${penalty}`
+          : `Steward Jatuhkan Sanksi untuk ${s(claim.entities.driver)}`),
         subhead: s(claim.values.reason) !== DASH ? s(claim.values.reason) : undefined,
         footnote: footer(claim),
         // Race Red, fixed: "red flags, penalties, DNFs, breaking paddock
@@ -151,7 +174,7 @@ export const archetypes: Archetype[] = [
       const team = s(claim.entities.team);
       return {
         eyebrow: s(claim.values.season) !== DASH ? `MUSIM ${s(claim.values.season)}` : 'FORMULA 1',
-        headline: s(claim.entities.driver),
+        headline: hookOr(claim, s(claim.entities.driver)),
         subhead: team !== DASH ? team : undefined,
         bigLabel: s(claim.values.contractYears) !== DASH ? `${s(claim.values.contractYears)} TAHUN` : undefined,
         footnote: footer(claim),
@@ -171,7 +194,7 @@ export const archetypes: Archetype[] = [
         eyebrow: `JADWAL · ${meet(claim)}`.toUpperCase(),
         // Same as classification: claim.headline here is the raw OpenF1
         // title ("Jadwal Spain"), never the localized display headline.
-        headline: meet(claim),
+        headline: meet(claim) !== DASH ? `Jadwal Lengkap ${meet(claim)}` : 'Jadwal Lengkap Akhir Pekan Ini',
         rows: sessions.slice(0, 8).map((x, i) => ({
           rank: String(i + 1),
           primary: s(x.name),
@@ -193,16 +216,11 @@ export const archetypes: Archetype[] = [
       return {
         eyebrow: meetingLine(claim),
         quote: claim.values.quote || claim.supportingQuote ? `“${s(claim.values.quote ?? claim.supportingQuote)}”` : undefined,
-        // claim.entities.title only ever holds the raw source title (the
-        // 'unextracted' fallback sets it verbatim from item.title, and a
-        // real extraction never populates 'title' at all) — never a safe
-        // fallback, so both branches fall back to a generic Indonesian label
-        // instead of it.
-        headline: claim.claimType === 'article' || claim.claimType === 'document'
-          ? safeHeadline(claim, 'Kabar F1')
-          : s(claim.entities.speaker ?? claim.entities.driver) !== DASH
-            ? s(claim.entities.speaker ?? claim.entities.driver)
-            : safeHeadline(claim, 'Kabar F1'),
+        // The verified Indonesian hook. A prose claim without one never
+        // reaches compose (see needsHook), so the label below is only ever
+        // seen on a structured claim.
+        headline: safeHeadline(claim, s(claim.entities.speaker ?? claim.entities.driver) !== DASH
+          ? s(claim.entities.speaker ?? claim.entities.driver) : 'Kabar F1'),
         // Omitted, not dashed: s() draws "–" for a missing value, which renders
         // as an empty plate under the headline on every post without a team.
         attribution: claim.entities.team ? s(claim.entities.team) : undefined,

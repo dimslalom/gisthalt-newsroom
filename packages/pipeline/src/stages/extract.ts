@@ -2,7 +2,8 @@ import { brandForVertical } from '@newsroom/brands';
 import { dedupeHash, contentHash, preExtractionKey } from '@newsroom/core';
 import type { Claim, RawItem } from '@newsroom/core';
 import type { ClaimRow, ItemRow } from '@newsroom/db';
-import { extractClaim, validateQuote } from '@newsroom/llm';
+import { EXTRACTION_CLAIM_TYPES, extractClaim, validateQuote } from '@newsroom/llm';
+import type { Brand } from '@newsroom/design';
 import { structuredClaim, topResultClaim, promotePrimary, fetchFallbackImage } from '@newsroom/sources';
 import type { Ctx } from '../context.ts';
 
@@ -11,6 +12,19 @@ export const toRawItem = (row: ItemRow): RawItem => ({
   sourceDomain: row.sourceDomain, rawUrl: row.rawUrl, title: row.title, body: row.body,
   payload: row.payload, observedAt: row.observedAt, imageUrl: row.imageUrl,
 });
+
+/** True when some archetype of the brand can render this claim type. */
+export const brandRendersClaimType = (brand: Brand, claimType: string): boolean =>
+  brand.archetypes.some((a) => a.claimTypes.includes(claimType));
+
+/**
+ * The claim type a brand can compose. A type no archetype of the brand lists
+ * (the model calling an F1 story a 'release', say) would throw NoArchetypeError
+ * at compose/review on every retry, so it becomes 'article', which every
+ * brand's quote-style archetype accepts.
+ */
+export const renderableClaimType = (brand: Brand, claimType: string): string =>
+  brandRendersClaimType(brand, claimType) ? claimType : 'article';
 
 export interface ExtractSummary { itemId: string; claims: number; modelCalls: number; violation: string | null }
 
@@ -57,7 +71,9 @@ export async function extractItem(ctx: Ctx, row: ItemRow): Promise<ExtractSummar
       produced.push({ ...prior, sourceTier: row.tier, sourceDomain: row.sourceDomain, observedAt: row.observedAt, headline: prior.headline ?? undefined, imageUrl: row.imageUrl, supportingQuote: violation ? null : prior.supportingQuote });
     } else {
       try {
-        const out = await extractClaim(ctx.router, item);
+        const brand = brandForVertical(item.vertical);
+        const claimTypes = EXTRACTION_CLAIM_TYPES.filter((t) => brandRendersClaimType(brand, t));
+        const out = await extractClaim(ctx.router, item, { claimTypes });
         modelCalls = out.cached || out.model === 'none' ? 0 : 1;
         violation = out.quoteViolation;
         if (out.claim) produced.push(out.claim);
@@ -72,6 +88,13 @@ export async function extractItem(ctx: Ctx, row: ItemRow): Promise<ExtractSummar
 
   let created = 0;
   for (const claim of produced) {
+    // Before hashing, so the dedupe hash matches what is stored and a second
+    // outlet with the same fact still corroborates it.
+    const renderable = renderableClaimType(brandForVertical(claim.vertical), claim.claimType);
+    if (renderable !== claim.claimType) {
+      ctx.store.log({ stage: 'extract', level: 'warn', msg: 'claim type has no archetype in its brand; stored as article', dedupeHash: null, latencyMs: null, meta: { itemId: row.id, claimType: claim.claimType, vertical: claim.vertical } });
+      claim.claimType = renderable;
+    }
     const hash = dedupeHash(claim);
     // Only worth spending a search-quota call on a claim that will actually
     // become a new row — upsertClaim keeps the existing row untouched on a

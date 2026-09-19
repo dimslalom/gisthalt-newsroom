@@ -37,6 +37,9 @@ export interface CallResult<T = unknown> {
   offline: boolean;
 }
 
+/** Backoff before each same-model retry on a 429 or 5xx. */
+const TRANSIENT_RETRY_MS = [2000, 6000];
+
 const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 const minuteKey = (d: Date) => d.toISOString().slice(0, 16);
 
@@ -104,6 +107,7 @@ export class GeminiRouter {
       const usage = this.store.usage(model, dayKey(now), minuteKey(now));
       usage.requestCount += 1;
       let res: Response;
+      let retries = 0;
       for (;;) {
       res = await this.fetchImpl(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -121,6 +125,16 @@ export class GeminiRouter {
         },
       );
       if (res.status !== 429 && res.status < 500) break;
+      // A 429/503 is usually a momentary spike: retry the same model briefly
+      // before walking the ladder, or one blip reads as "no model available".
+      // A spent daily quota is not a spike — it won't clear for hours, and
+      // retrying only holds up the caller.
+      const dailyQuotaSpent = res.status === 429 && /PerDay/i.test(await res.clone().text().catch(() => ''));
+      if (!dailyQuotaSpent && retries < TRANSIENT_RETRY_MS.length) {
+        await new Promise((r) => setTimeout(r, TRANSIENT_RETRY_MS[retries++]));
+        continue;
+      }
+      retries = 0;
       const fallback = this.limits.find((l) => l.model === model)?.fallback;
       if (!fallback || !this.available(fallback, now)) return { text: '', json: null, model, cached: false, offline: true };
       model = fallback;

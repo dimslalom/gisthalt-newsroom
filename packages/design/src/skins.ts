@@ -11,10 +11,10 @@ export const SKINS: Skin[] = [
 
 export const SKIN_BY_KEY = Object.fromEntries(SKINS.map((s) => [s.key, s]));
 
-/** L5. Zero to two of five: 1 + 5 + 10 = 16 valid accent sets. The oversized
- *  background-word watermark is no longer offered — not the brand's style —
- *  though the renderer still draws it for any older composition that names it. */
-export const ACCENTS: AccentKey[] = ['diagonal', 'halftone', 'grain', 'ticker', 'cropmarks'];
+/** L5. No accents are offered: the house style is a photo plus one text box
+ *  and nothing else (see doc-minimal.ts). The renderer still draws an accent
+ *  for any older composition that names one. */
+export const ACCENTS: AccentKey[] = [];
 
 export function accentSets(): AccentKey[][] {
   const sets: AccentKey[][] = [[]];

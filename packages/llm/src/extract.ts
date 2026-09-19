@@ -1,7 +1,8 @@
 import { numericValues, quoteSupports } from '@newsroom/core';
 import type { Claim, RawItem } from '@newsroom/core';
 import type { GeminiRouter } from './router.ts';
-import { ANTI_AI_STYLE_RULES, hasBannedDash } from './style-rules.ts';
+import { ANTI_AI_STYLE_RULES } from './style-rules.ts';
+import { checkHookHeadline, HOOK_TAG, writeHookHeadline } from './headline.ts';
 
 export interface ExtractedClaim {
   claimType: string;
@@ -17,19 +18,28 @@ export interface ExtractedClaim {
  * is needed, and a mandatory quote for every numeric value. The instruction is
  * not trusted: the result is validated in code below.
  */
-export function extractionPrompt(item: RawItem): string {
+export const EXTRACTION_CLAIM_TYPES = ['session_result', 'classification', 'standings', 'penalty', 'driver_line', 'schedule', 'quote', 'article', 'match_result', 'map_breakdown', 'player_stat', 'roster_move', 'bracket', 'release', 'cast', 'trailer', 'box_office', 'review'];
+
+export interface ExtractionOptions {
+  /** The claim types the item's brand can actually render. Narrows the list the
+   *  model picks from; the caller still has to check the answer. */
+  claimTypes?: string[];
+}
+
+export function extractionPrompt(item: RawItem, opts: ExtractionOptions = {}): string {
+  const types = opts.claimTypes?.length ? [...new Set([...opts.claimTypes, 'article'])] : EXTRACTION_CLAIM_TYPES;
   return `You are an extraction function for an Indonesian multi-brand newsroom. You never decide whether something is true; you only structure what the text says.
 
 Return JSON only, matching:
 {"claimType": string, "entities": {...}, "values": {...}, "supportingQuote": string|null, "headline": string, "tags": string[]}
 
 Rules:
-- claimType is one of: session_result, classification, standings, penalty, driver_line, schedule, quote, article, match_result, map_breakdown, player_stat, roster_move, bracket, release, cast, trailer, box_office, review.
+- claimType is one of: ${types.join(', ')}. Use article when none of the others fits.
 - entities uses keys from: driver, team, meeting, session, speaker, season. Each value MUST be a single plain string — never a nested object or an array. If more than one applies (e.g. two drivers), pick the most prominent one or join them with ", ". Omit a key entirely if it doesn't apply — don't include it set to null.
 - values holds typed facts only (numbers as numbers).
 - supportingQuote MUST be one sentence copied VERBATIM from the source text that contains EVERY numeric value you put in values. If no single sentence does, set supportingQuote to null.
 - tags may include: rumour, exclusive, report, official, confirmed.
-- headline is a short Indonesian headline, max 70 characters, containing no facts absent from values/entities.
+- headline is the post's hook in Indonesian (never English, never a copy of the source title, never a generic label like "Kabar F1"): max 72 characters, the main subject first, a strong specific active verb, no facts absent from the source.
 
 ${ANTI_AI_STYLE_RULES}
 
@@ -79,10 +89,10 @@ function normaliseEntities(raw: unknown): Record<string, string> | null {
   return out;
 }
 
-export async function extractClaim(router: GeminiRouter, item: RawItem): Promise<ExtractionOutcome> {
+export async function extractClaim(router: GeminiRouter, item: RawItem, opts: ExtractionOptions = {}): Promise<ExtractionOutcome> {
   const res = await router.call<ExtractedClaim>({
     purpose: 'extract',
-    prompt: extractionPrompt(item),
+    prompt: extractionPrompt(item, opts),
     json: true,
     cacheKey: `extract:${item.sourceKey}:${item.externalId}:${item.body}`, 
   });
@@ -118,8 +128,11 @@ export async function extractClaim(router: GeminiRouter, item: RawItem): Promise
   if (typeof e !== 'object' || e === null || !entities || !e.values || typeof e.values !== 'object' || Array.isArray(e.values) || (e.tags && (!Array.isArray(e.tags) || e.tags.some((v) => typeof v !== 'string')))) throw new Error('invalid extraction response shape');
   const quote = typeof e.supportingQuote === 'string' ? e.supportingQuote : null;
   const violation = validateQuote(quote, e.values ?? {}, `${item.title}\n${item.body}`);
-  // A headline that smuggled in a banned dash is discarded, not patched.
-  const headline = e.headline && !hasBannedDash(e.headline) ? e.headline : item.title;
+  // The headline is the hook. One that isn't a valid Indonesian hook is
+  // discarded, not patched, and written again by the dedicated hook prompt.
+  let hook = typeof e.headline === 'string' && !checkHookHeadline(e.headline, item) ? e.headline.replace(/\s+/g, ' ').trim() : null;
+  if (!hook) hook = (await writeHookHeadline(router, item)).headline;
+  const headline = hook ?? item.title;
 
   return {
     claim: {
@@ -131,7 +144,7 @@ export async function extractClaim(router: GeminiRouter, item: RawItem): Promise
       sourceTier: item.tier === 'A' ? 'B' : item.tier,
       sourceDomain: item.sourceDomain,
       observedAt: item.observedAt,
-      tags: e.tags ?? [],
+      tags: [...(e.tags ?? []), ...(hook ? [HOOK_TAG] : [])],
       headline,
       imageUrl: item.imageUrl ?? null,
     },

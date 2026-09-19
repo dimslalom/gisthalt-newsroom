@@ -19,7 +19,24 @@ export const DASH = '–';
 export function safeHeadline(claim: Claim, fallback: string): string {
   const h = claim.headline?.trim();
   if (!h) return fallback;
-  return claim.tags?.includes('unextracted') ? fallback : h;
+  const tags = claim.tags ?? [];
+  // 'headline:id' means this line passed the Indonesian hook check, which
+  // outranks a failed extraction: the facts may be unverified, the copy isn't.
+  if (tags.includes(HOOK_TAG)) return h;
+  return tags.includes('unextracted') ? fallback : h;
+}
+
+/** Tag on a claim whose headline passed the Indonesian hook check
+ *  (see packages/llm/src/headline.ts). */
+export const HOOK_TAG = 'headline:id';
+
+/**
+ * A prose claim's headline comes from a model and must be a verified
+ * Indonesian hook before anything is drawn. Structured (tier A) claims build
+ * their hook from confirmed data inside the archetype instead.
+ */
+export function needsHook(claim: { sourceTier: Claim['sourceTier']; tags?: string[] | null }): boolean {
+  return claim.sourceTier !== 'A' && !(claim.tags ?? []).includes(HOOK_TAG);
 }
 
 /**

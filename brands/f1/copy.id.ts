@@ -12,9 +12,7 @@ import { meetingId, sessionId } from './locale.id.ts';
  */
 export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
   session_result: (m, c) =>
-    [c.sourceTier !== 'A' && c.headline?.trim()
-      ? m.headline
-      : `${m.headline} ${m.bigNumber ?? ''} di ${sessionId(c.entities.session) || 'sesi'} ${meetingId(c.entities.meeting)}`.trim(),
+    [m.headline,
      m.subhead ? m.subhead : '',
      '⏱️ Waktu lengkap dan selisih tiap pembalap ada di grafik ini.',
      tags(c)].filter(Boolean).join('\n\n'),
@@ -23,7 +21,7 @@ export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
     const top = (m.rows ?? []).slice(0, 3)
       .map((r) => `${r.rank}. ${r.primary} ${r.value}${r.trailing && r.trailing !== DASH ? ` (${r.trailing})` : ''}`);
     return [
-      `${m.headline} di ${meetingId(c.entities.meeting)}`.trim(),
+      m.headline,
       top.join('\n'),
       'Rangkuman lengkap sudah aku susun di atas.',
       tags(c),
@@ -42,7 +40,7 @@ export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
 
   penalty: (m, c) =>
     [
-      `📑 ${m.headline} kena ${m.bigNumber ?? 'penalti'}`,
+      `📑 ${m.headline}`,
       m.subhead ?? '',
       'Detail lengkap ada di dokumen resmi FIA.',
       tags(c),
@@ -58,7 +56,7 @@ export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
 
   schedule: (m, c) =>
     [
-      `Jadwal ${m.headline}`,
+      m.headline,
       (m.rows ?? []).map((r) => `${r.primary}: ${r.value} ${r.trailing}`).join('\n'),
       'Jangan sampai ketinggalan sesi favoritmu.',
       tags(c),
@@ -67,8 +65,8 @@ export const copy: Record<string, (m: ArtModel, claim: Claim) => string> = {
   quote: (m, c) =>
     [
       rumourPrefix(c),
-      m.quote ?? '',
-      `${m.quote ? '- ' : ''}${m.headline}${m.attribution && m.attribution !== DASH ? `, ${m.attribution}` : ''}`,
+      m.headline,
+      m.quote ? `${m.quote}${m.attribution && m.attribution !== DASH ? `\n${m.attribution}` : ''}` : '',
       tags(c),
     ].filter(Boolean).join('\n\n'),
 };

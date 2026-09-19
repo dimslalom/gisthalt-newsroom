@@ -115,6 +115,8 @@ export interface NodeBase {
    *  and unlike that rule it's visible and editable rather than an invisible
    *  consequence of there being an image. */
   background?: Paint;
+  /** Corner radius of the node's own box, in px. */
+  radius?: number;
   /** Per-side, in spacing units. */
   padding?: { top?: number; right?: number; bottom?: number; left?: number };
 }
@@ -173,6 +175,8 @@ export interface RowsNode extends NodeBase {
   density?: 'auto' | 'dense' | 'roomy';
   /** Which of TableRow's fields to draw, in order. */
   columns?: ('rank' | 'chip' | 'primary' | 'secondary' | 'value' | 'trailing')[];
+  /** No row rules, no colour chips, every cell in the node's inherited colour. */
+  plain?: boolean;
 }
 
 export interface LogoNode extends NodeBase {
@@ -341,6 +345,7 @@ export function sanitizeNode(input: unknown, ctx = { count: 0 }, depth = 0): Lay
   const h = sanitizeSize(n.height); if (h) base.height = h;
   if (typeof n.opacity === 'number') base.opacity = num(n.opacity, 0, 1, 1);
   if (n.background !== undefined) base.background = sanitisePaint(n.background);
+  if (typeof n.radius === 'number' && n.radius > 0) base.radius = num(n.radius, 0, 400, 0);
   if (n.padding && typeof n.padding === 'object') {
     const pad = n.padding as Record<string, unknown>;
     const padding: NonNullable<NodeBase['padding']> = {};
@@ -411,6 +416,7 @@ export function sanitizeNode(input: unknown, ctx = { count: 0 }, depth = 0): Lay
         columns: cols
           ? (cols.filter((c) => allowed.includes(c as (typeof allowed)[number])) as RowsNode['columns'])
           : [...allowed],
+        ...(n.plain === true ? { plain: true } : {}),
       };
     }
     case 'logo':

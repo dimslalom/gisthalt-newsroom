@@ -4,7 +4,7 @@ import { basename, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import {
   clearLayoutOverride, compose, composeCarousel, enumerateVariants, getLayoutOverride, saveLayoutOverride,
-  getLayoutDoc, saveLayoutDoc, deleteLayoutDoc, seedDoc, presentFields, readField, FIELDS, CANVASES, CANVAS_KEYS,
+  getLayoutDoc, saveLayoutDoc, deleteLayoutDoc, minimalDoc, presentFields, readField, FIELDS, CANVASES, CANVAS_KEYS,
   loadThemeOverride, saveThemeOverride, clearThemeOverride, FONT_SLOTS,
   resolvedLayouts, addLayoutSlot, removeLayoutSlot,
   isLayoutShippable, loadPassing, resetPassingCache, deriveLayout, suggestTransforms,
@@ -269,7 +269,7 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
         const body = JSON.parse(await readBody(req)) as { brand?: string; archetype?: string; layout?: LayoutKey };
         if (!body.archetype || !body.layout) return json(res, 400, { error: 'archetype and layout are required' });
         brandByKey(body.brand ?? 'f1');
-        const seeded = saveLayoutDoc(body.brand ?? 'f1', body.archetype, body.layout, seedDoc(body.layout));
+        const seeded = saveLayoutDoc(body.brand ?? 'f1', body.archetype, body.layout, minimalDoc(body.layout));
         return json(res, 200, { doc: seeded });
       }
 
@@ -290,7 +290,7 @@ export function startRenderServer(port = Number(process.env.RENDER_PORT ?? 8787)
         const brandKey = body.brand ?? 'f1';
         if (!body.archetype || !body.fromLayout) return json(res, 400, { error: 'archetype and fromLayout are required' });
         brandByKey(brandKey);
-        const source = getLayoutDoc(brandKey, body.archetype, body.fromLayout) ?? seedDoc(body.fromLayout);
+        const source = getLayoutDoc(brandKey, body.archetype, body.fromLayout) ?? minimalDoc(body.fromLayout);
         // Explicit transforms win; otherwise offer the mechanical guess for
         // this pair (e.g. hero-left -> hero-right is a mirror) as a starting
         // point the designer still reviews before it's ever saved anywhere.

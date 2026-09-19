@@ -17,21 +17,18 @@ describe('session news headlines', () => {
     expect(model.headline).toBe(news.headline);
     expect(brand.copy.session_result!(model, news).split('\n')[0]).toBe(news.headline);
   });
-  it('keeps short driver headings on structured result cards', () => {
-    expect(archetype.model({ ...claim, sourceTier: 'A' }).headline).toBe('Oscar Piastri');
+  it('builds an Indonesian hook for structured result cards, not a bare name', () => {
+    expect(archetype.model({ ...claim, sourceTier: 'A' }).headline).toBe('Oscar Piastri Finis P7 di Kualifikasi');
+    expect(archetype.model({ ...claim, sourceTier: 'A', values: { position: 1 } }).headline).toBe('Oscar Piastri Rebut Pole GP Spanish');
   });
-  it('falls back safely when a prose headline is blank', () => {
-    expect(archetype.model({ ...claim, sourceTier: 'B', headline: '  ' }).headline).toBe('Oscar Piastri');
+  it('falls back to the data-built hook when a prose headline is blank', () => {
+    expect(archetype.model({ ...claim, sourceTier: 'B', headline: '  ' }).headline).toBe('Oscar Piastri Finis P7 di Kualifikasi');
   });
 });
 
 describe('the combinatorial system', () => {
-  it('offers 16 valid accent sets: none, each of five, and every pair', () => {
-    const sets = accentSets();
-    expect(sets).toHaveLength(16);
-    expect(sets.every((s) => s.length <= 2)).toBe(true);
-    expect(new Set(sets.map((s) => [...s].sort().join('+'))).size).toBe(16);
-    expect(sets.flat()).not.toContain('watermark');
+  it('offers only the empty accent set — no decorative overlays', () => {
+    expect(accentSets()).toEqual([[]]);
   });
 
   it('declares 7 archetypes with exactly 4 layouts each — 28 designed layouts', () => {
@@ -40,8 +37,8 @@ describe('the combinatorial system', () => {
     expect(brand.archetypes.reduce((n, a) => n + a.layouts.length, 0)).toBe(28);
   });
 
-  it('reaches 2,240 compositions per brand from 28 designed files', () => {
-    expect(28 * 5 * accentSets().length).toBe(2240);
+  it('reaches 140 compositions per brand from 28 designed files', () => {
+    expect(28 * 5 * accentSets().length).toBe(140);
   });
 });
 

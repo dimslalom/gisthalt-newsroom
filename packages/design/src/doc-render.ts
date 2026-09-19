@@ -73,6 +73,7 @@ function baseStyle(node: LayoutNode, parentAxis: 'vertical' | 'horizontal', ctx:
   }
   if (node.opacity !== undefined && node.opacity < 1) out.push(`opacity:${node.opacity}`);
   if (node.background && node.background.type !== 'none') out.push(`background:${resolvePaint(node.background, ctx.paint)}`);
+  if (node.radius) out.push(`border-radius:${node.radius}px`);
   if (node.padding) out.push(paddingCss(node.padding));
   return out.filter(Boolean).join(';');
 }
@@ -193,7 +194,7 @@ function rowsNodeHtml(node: RowsNode, ctx: Ctx, parentAxis: 'vertical' | 'horizo
   const body = rows.map((r) =>
     `<tr${r.colour ? ` style="--row-colour:${esc(r.colour)}"` : ''}>${cols.map((c) => cell(r, c)).join('')}</tr>`).join('');
   return `<div data-el="${esc(node.id)}" data-kind="rows" style="${baseStyle(node, parentAxis, ctx)}">`
-    + `<table class="rows ${density}"><tbody>${body}</tbody></table></div>`;
+    + `<table class="rows ${density}${node.plain ? ' plain' : ''}"><tbody>${body}</tbody></table></div>`;
 }
 
 function logoHtml(node: LayoutNode & { kind: 'logo' }, ctx: Ctx, parentAxis: 'vertical' | 'horizontal'): string {
@@ -260,6 +261,9 @@ td.trailing{text-align:right;font-family:var(--font-mono);color:var(--muted);fon
 .rows.dense td{padding:calc(var(--u)*.6) 0;font-size:calc(var(--fs-body)*.78)}
 .rows.dense td.chip i{height:22px}
 .rows.roomy td{padding:calc(var(--u)*2.4) 0}
+.rows.plain td{border-bottom:0;color:inherit}
+.rows.plain td + td{padding-left:calc(var(--u)*2)}
+.rows.plain td.chip{display:none}
 
 /* accents (L5) ------------------------------------------------------------
    Decorative overlays chosen by the composer's shuffle bag, not by the
